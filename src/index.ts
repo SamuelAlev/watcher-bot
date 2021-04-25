@@ -1,6 +1,7 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as puppeteer from 'puppeteer';
+import path from 'path';
+import puppeteer from 'puppeteer-extra';
+import type { Page } from 'puppeteer';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import * as dotenv from 'dotenv';
 import { fastify } from 'fastify';
 import FastifyStatic from 'fastify-static';
@@ -28,23 +29,13 @@ const {
 
     server.listen(3000);
 
-    // const videoPath = path.resolve(__dirname, 'media', 'test.y4m');
-    // const audioPath = path.resolve(__dirname, 'media', 'test.wav');
-
-    // console.log(process.cwd());
-    
-
-    const browser = await puppeteer.launch({
+    const browser = await puppeteer.use(StealthPlugin()).launch({
         executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        //@ts-ignore
         args: [
-            '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36',
-            '--window-size=1200,800',
-
             '--use-fake-ui-for-media-stream',
             '--use-fake-device-for-media-stream',
-            // `--use-file-for-fake-video-capture=src/media/bear.mjpeg`,
-            // `--use-file-for-fake-audio-capture="${audioPath}"`,
-            // '--disable-gesture-requirement-for-media-playback',
+
             '--disable-web-security',
             '--disable-features=IsolateOrigins',
             '--disable-site-isolation-trials'
@@ -54,9 +45,6 @@ const {
     });
 
     const page = await browser.newPage();
-
-    const preloadFile = fs.readFileSync(path.join(__dirname, 'preload.js'), 'utf8');
-    await page.evaluateOnNewDocument(preloadFile);
 
     await page.setBypassCSP(true);
 
@@ -120,9 +108,10 @@ const {
                     const metadata: any = await bindVideoToScreenShare(page, videoPath);
                     await playVideo(page)
                     await connectToVoiceChannel(page);
-                    await shareScreen(page, metadata.duration);
+                    await shareScreen(page, metadata.duration + 2);
                 } catch {
                     await unbindVideoFromScreenShare(page)
+                    await stopScreenSharing(page)
                     console.error('Couldn\'t connect and stream')
                 }
             } else if (message === '$$stop') {
@@ -157,7 +146,7 @@ const {
     });
 })();
 
-const removeTooltip = async (page: puppeteer.Page) => {
+const removeTooltip = async (page: Page) => {
     const tooltip = await page.$('div[class*="channelNotice-"] > div[class*="close-"]');
     if (!tooltip) {
         console.log('No tooltip to hide')
@@ -167,7 +156,7 @@ const removeTooltip = async (page: puppeteer.Page) => {
     await tooltip.click()
 }
 
-const connectToVoiceChannel = async (page: puppeteer.Page) => {
+const connectToVoiceChannel = async (page: Page) => {
     await page.screenshot({path: 'logs/3-show-server.jpg'})
 
     const voiceChannelElement = await page.$(`a[data-list-item-id="channels___${DISCORD_VOICE_CHANNEL_ID as string}"]`);
@@ -181,7 +170,7 @@ const connectToVoiceChannel = async (page: puppeteer.Page) => {
     await page.screenshot({path: 'logs/4-voice-channel-clicked.jpg'})
 }
 
-const disconnectFromVoiceChannel = async (page:puppeteer.Page) => {
+const disconnectFromVoiceChannel = async (page:Page) => {
     const disconnectButton = await page.$('div[class*="connection-"] > div:last-child > button')
     if (!disconnectButton) {
         throw new Error('Can\' disconnect from the server')
@@ -190,7 +179,7 @@ const disconnectFromVoiceChannel = async (page:puppeteer.Page) => {
     disconnectButton.click()
 }
 
-const bindVideoToScreenShare = async (page: puppeteer.Page, videoPath: string) => {
+const bindVideoToScreenShare = async (page: Page, videoPath: string) => {
     return await page.evaluate((videoPath) => {
         return new Promise((resolve, reject) => {
             const video = document.createElement('video');
@@ -219,7 +208,7 @@ const bindVideoToScreenShare = async (page: puppeteer.Page, videoPath: string) =
     }, videoPath);
 }
 
-const unbindVideoFromScreenShare = async (page: puppeteer.Page) => {
+const unbindVideoFromScreenShare = async (page: Page) => {
     await page.evaluate(() => {
         document.getElementById("video-to-play")?.remove();
 
@@ -230,7 +219,7 @@ const unbindVideoFromScreenShare = async (page: puppeteer.Page) => {
     })
 }
 
-const shareScreen = async (page: puppeteer.Page, duration: number) => {
+const shareScreen = async (page: Page, duration: number) => {
     console.log('Video duration', duration);
     
     duration && setTimeout(async () => {
@@ -250,7 +239,7 @@ const shareScreen = async (page: puppeteer.Page, duration: number) => {
     await page.screenshot({path: 'logs/5-share-screen-button-clicked.jpg'})
 }
 
-const stopScreenSharing = async (page: puppeteer.Page) => {
+const stopScreenSharing = async (page: Page) => {
     const shareScreenButtonElement = await page.$('div[class^="actionButtons-"] > button:nth-child(2)')
     if (!shareScreenButtonElement) {
         throw new Error("The \"Share Screen\" button has not been found");
@@ -264,7 +253,7 @@ const stopScreenSharing = async (page: puppeteer.Page) => {
     await stopScreenSharingElement.click();
 }
 
-const playVideo = async (page: puppeteer.Page) => {
+const playVideo = async (page: Page) => {
     //@ts-ignore
     await page.$eval('#video-to-play', (video) => video.play());
 }
