@@ -114,6 +114,10 @@ const {
                     await stopScreenSharing(page)
                     console.error('Couldn\'t connect and stream')
                 }
+            } else if (message === '$$resume') {
+                await playVideo(page)
+            } else if (message === '$$pause') {
+                await pauseVideo(page);
             } else if (message === '$$stop') {
                 try {
                     await disconnectFromVoiceChannel(page)
@@ -121,6 +125,28 @@ const {
                 } catch {
                     console.error('Couldn\'t disconnect from the stream')
                 }
+            } else if (message.startsWith('$$seek')) {
+                const time = message.split(' ')[1]
+                if (!time) {
+                    throw new Error('No time given');
+                }
+                await setVideoTime(page, time)
+            } else if (message.startsWith('$$volume')) {
+                const volume = parseInt(message.split(' ')[1])
+                if (!volume) {
+                    throw new Error('No volume given');
+                }
+                await setVideoVolume(page, volume)
+            } else if (message.startsWith('$$speed')) {
+                const speed = parseInt(message.split(' ')[1])
+                if (!speed) {
+                    throw new Error('No speed given');
+                }
+                await setVideoSpeed(page, speed)
+            } else if (message === '$$loop') {
+                await toggleVideoLoop(page);
+            } else if (message === '$$np') {
+                console.log(await getVideoTime(page));
             }
         }
     });
@@ -173,7 +199,7 @@ const connectToVoiceChannel = async (page: Page) => {
 const disconnectFromVoiceChannel = async (page:Page) => {
     const disconnectButton = await page.$('div[class*="connection-"] > div:last-child > button')
     if (!disconnectButton) {
-        throw new Error('Can\' disconnect from the server')
+        throw new Error('Can\'t disconnect from the server')
     }
 
     disconnectButton.click()
@@ -258,3 +284,32 @@ const playVideo = async (page: Page) => {
     await page.$eval('#video-to-play', (video) => video.play());
 }
 
+const setVideoVolume = async (page: Page, volume: number) => {
+    //@ts-ignore
+    await page.$eval('#video-to-play', (video) => video.volume = volume / 100);
+}
+
+const setVideoSpeed = async (page: Page, speed: number) => {
+    //@ts-ignore
+    await page.$eval('#video-to-play', (video) => video.playbackRate = speed);
+}
+
+const setVideoTime = async (page: Page, time: string) => {
+    //@ts-ignore
+    await page.$eval('#video-to-play', (video) => video.currentTime = time);
+}
+
+const getVideoTime = async (page: Page) => {
+    //@ts-ignore
+    await page.$eval('#video-to-play', (video) => video.currentTime);
+}
+
+const pauseVideo = async (page: Page) => {
+    //@ts-ignore
+    await page.$eval('#video-to-play', (video) => video.pause());
+}
+
+const toggleVideoLoop = async (page: Page) => {
+    //@ts-ignore
+    await page.$eval('#video-to-play', (video) => video.loop ^= true);
+}
