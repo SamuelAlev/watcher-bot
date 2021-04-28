@@ -2,8 +2,9 @@ declare global {
     interface Window {
         onNewMessageReceived: (text: string) => void;
         onVideoEnded: () => void;
-        setStreamAlreadyBound: (value: boolean) => void;
         logger: (...args: any) => void;
+
+        mixedStream: MediaStream;
     }
 
     interface HTMLCanvasElement {
@@ -15,7 +16,7 @@ declare global {
     }
 
     interface MediaDevices extends EventTarget {
-        getDisplayMedia(constraints?: MediaStreamConstraints): Promise<MediaStream>;
+        getDisplayMedia(constraints?: MediaStreamConstraints): Promise<MediaStream> | null;
     }
 }
 
