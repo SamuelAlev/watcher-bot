@@ -14,11 +14,13 @@
         "strict": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": false,
-        "noUnusedLocals": true,
         "noUnusedParameters": false,
         "pretty": true,
         "stripInternal": true
     },
-    "include": ["./src/**/*.ts"],
+    "ts-node": {
+        "files": true
+    },
+    "include": ["./typings/**/*.d.ts", "./src/**/*.ts"],
     "exclude": ["node_modules", "dist", "./test/**/*.spec.ts"]
 }
