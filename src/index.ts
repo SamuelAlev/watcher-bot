@@ -304,7 +304,7 @@ const setVideoLoopFalse = async (page: Page) => {
 
 const setSrcToLoopVideo = async (page: Page) => {
     await toggleVideoLoop(page);
-    await setSrcOnVideoTag(page, `http://localhost:${WEBSERVER_PORT}/loop.mp4`);
+    await setSrcOnVideoTag(page, `http://localhost:${WEBSERVER_PORT}/loop-1.mp4`);
 };
 
 const bindQueueToVideoTag = async (page: Page) => {
