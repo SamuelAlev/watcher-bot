@@ -10,7 +10,6 @@ import FastifyCors from 'fastify-cors';
 dotenv.config();
 
 const {
-    VIDEO_FPS,
     WEBSERVER_PORT,
     DISCORD_DOMAIN,
     DISCORD_LOGIN_PATH,
@@ -21,16 +20,19 @@ const {
     DISCORD_VOICE_CHANNEL_ID,
 } = process.env;
 
+const VIDEO_FPS = parseInt(process.env.VIDEO_FPS);
 const DEBUG = process.env.DEBUG === 'true';
 
 interface State {
-    streamAlreadyBound: boolean;
+    audioStreamBound: boolean;
+    videoStreamBound: boolean;
     connectedToVoiceChannel: boolean;
     screenShared: boolean;
 }
 
 const state: State = {
-    streamAlreadyBound: false,
+    audioStreamBound: false,
+    videoStreamBound: false,
     connectedToVoiceChannel: false,
     screenShared: false,
 };
@@ -78,6 +80,9 @@ const disconnectFromVoiceChannel = async (page: Page) => {
     state.connectedToVoiceChannel = false;
 
     await disconnectButton.click();
+
+    state.screenShared = false;
+    state.connectedToVoiceChannel = false;
 };
 
 const addVideoTagInPage = async (page: Page) => {
@@ -121,7 +126,7 @@ const addCanvasTagInPage = async (page: Page) => {
 const setSrcOnVideoTag = async (page: Page, videoPath: string) => {
     DEBUG && console.log('Adding `src` attribute to video tag');
 
-    return await page.evaluate((videoPath: string) => {
+    await page.evaluate((videoPath: string) => {
         return new Promise<void>((resolve, reject) => {
             const video = document.getElementById('video-to-play');
             if (!video) {
@@ -177,36 +182,116 @@ const bindVideoTagToCanvasTag = async (page: Page) => {
     });
 };
 
-const bindMixedStreamToScreenShare = async (page: Page) => {
+const bindEmptyMediaStreamToScreenShare = async (page: Page) => {
     if (DEBUG) {
-        console.log('Bind mixed stream to `getDisplayMedia`');
-        console.log('Video FPS:', VIDEO_FPS);
+        console.log('Binding empty `MediaStream` to `getDisplayMedia`');
     }
 
-    await page.evaluate((VIDEO_FPS: number) => {
-        const video = document.getElementById('video-to-play') as HTMLVideoElement;
-        if (!video) {
-            throw new Error("Could't find the video tag");
+    await page.evaluate(() => {
+        window.mixedStream = new MediaStream([]);
+        (navigator as Navigator).mediaDevices.getDisplayMedia = () => Promise.resolve(window.mixedStream);
+    });
+};
+
+const bindVideoToScreenShareMediaStream = async (page: Page) => {
+    await page.evaluate(
+        (VIDEO_FPS: number, DEBUG: boolean) => {
+            const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+            if (!canvas) {
+                throw new Error("Could't find the canvas tag");
+            }
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                throw new Error("Could't get canvas context");
+            }
+
+            window.logger('video track on canvas tag:', canvas.captureStream(VIDEO_FPS).getVideoTracks());
+            const videoTrack = canvas.captureStream(VIDEO_FPS).getVideoTracks()[0];
+            if (videoTrack) {
+                window.mixedStream.addTrack(videoTrack);
+                if (DEBUG) {
+                    window.logger('Video stream bound to `window.mixedStream`');
+                }
+            } else {
+                if (DEBUG) {
+                    window.logger('No video stream on the video to add');
+                }
+            }
+        },
+        VIDEO_FPS,
+        DEBUG,
+    );
+
+    state.videoStreamBound = true;
+};
+
+const unbindVideoFromScreenShareMediaStream = async (page: Page) => {
+    await page.evaluate((DEBUG: boolean) => {
+        const videoTracks = window.mixedStream.getVideoTracks();
+        if (videoTracks.length) {
+            if (DEBUG) {
+                window.logger(`Unbinding ${videoTracks.length} video streams from \`window.mixedStream\``);
+            }
+            videoTracks.forEach((videoTrack) => {
+                window.mixedStream.removeTrack(videoTrack);
+            });
+        } else {
+            if (DEBUG) {
+                window.logger('No video stream to remove from `window.mixedStream`');
+            }
         }
+    }, DEBUG);
 
-        const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-        if (!canvas) {
-            throw new Error("Could't find the canvas tag");
+    state.videoStreamBound = false;
+};
+
+const bindAudioToScreenShareMediaStream = async (page: Page) => {
+    await page.evaluate(
+        (VIDEO_FPS: number, DEBUG: boolean) => {
+            const video = document.getElementById('video-to-play') as HTMLVideoElement;
+            if (!video) {
+                throw new Error("Could't find the video tag");
+            }
+
+            window.logger('audio track on video tag:', video.captureStream(VIDEO_FPS).getAudioTracks());
+            const audioTrack = video.captureStream(VIDEO_FPS).getAudioTracks()[0];
+            if (audioTrack) {
+                window.mixedStream.addTrack(audioTrack);
+                if (DEBUG) {
+                    window.logger('Audio stream bound to `window.mixedStream`');
+                }
+            } else {
+                if (DEBUG) {
+                    window.logger('No audio stream on the video to add');
+                }
+            }
+        },
+        VIDEO_FPS,
+        DEBUG,
+    );
+
+    state.audioStreamBound = true;
+};
+
+const unbindAudioFromScreenShareMediaStream = async (page: Page) => {
+    await page.evaluate((DEBUG: boolean) => {
+        const audioTracks = window.mixedStream.getAudioTracks();
+        if (audioTracks.length) {
+            if (DEBUG) {
+                window.logger(`Unbinding ${audioTracks.length} audio streams from \`window.mixedStream\``);
+            }
+            audioTracks.forEach((audioTrack) => {
+                window.mixedStream.removeTrack(audioTrack);
+            });
+        } else {
+            if (DEBUG) {
+                window.logger('No audio stream to remove from `window.mixedStream`');
+            }
         }
+    }, DEBUG);
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            throw new Error("Could't get canvas context");
-        }
-
-        const mixedStream = new MediaStream([
-            canvas.captureStream(VIDEO_FPS).getVideoTracks()[0],
-            video.captureStream(VIDEO_FPS).getAudioTracks()[0],
-        ]);
-
-        window.setStreamAlreadyBound(true);
-        (navigator as Navigator).mediaDevices.getDisplayMedia = () => Promise.resolve(mixedStream);
-    }, parseInt(VIDEO_FPS));
+    state.audioStreamBound = false;
 };
 
 const shareScreen = async (page: Page) => {
@@ -216,12 +301,12 @@ const shareScreen = async (page: Page) => {
     }
     await shareScreenButtonElement.click();
 
-    state.screenShared = true;
-
     if (DEBUG) {
         console.log('Share screen button clicked');
         await page.screenshot({ path: 'logs/5-share-screen-button-clicked.jpg' });
     }
+
+    state.screenShared = true;
 };
 
 const stopScreenSharing = async (page: Page) => {
@@ -236,9 +321,12 @@ const stopScreenSharing = async (page: Page) => {
         throw new Error('The "Stop Share Screen" button has not been found');
     }
     await stopScreenSharingElement.click();
+
+    state.screenShared = false;
 };
 
 const startVideo = async (page: Page) => {
+    DEBUG && console.log('Playing the video');
     await page.$eval('#video-to-play', (video) => {
         (video as HTMLVideoElement).play();
     });
@@ -303,7 +391,6 @@ const setVideoLoopFalse = async (page: Page) => {
 };
 
 const setSrcToLoopVideo = async (page: Page) => {
-    await toggleVideoLoop(page);
     await setSrcOnVideoTag(page, `http://localhost:${WEBSERVER_PORT}/loop-1.mp4`);
 };
 
@@ -345,7 +432,7 @@ const bindQueueToVideoTag = async (page: Page) => {
             '--disable-site-isolation-trials',
         ],
         // ignoreDefaultArgs: ['--mute-audio'],
-        // headless: false,
+        headless: false,
     } as LaunchOptions);
 
     const page = await browser.newPage();
@@ -394,17 +481,20 @@ const bindQueueToVideoTag = async (page: Page) => {
     await removeTooltip(page);
     await addCanvasTagInPage(page);
     await addVideoTagInPage(page);
+    await bindQueueToVideoTag(page);
     await bindVideoTagToCanvasTag(page);
+    await bindEmptyMediaStreamToScreenShare(page);
 
     await page.exposeFunction('logger', console.log);
 
     await page.exposeFunction('onVideoEnded', async () => {
-        await setSrcToLoopVideo(page);
-        await startVideo(page);
-    });
+        console.log('Starting loop video');
 
-    await page.exposeFunction('setStreamAlreadyBound', (value: boolean) => {
-        state.streamAlreadyBound = value;
+        await unbindAudioFromScreenShareMediaStream(page);
+        await setSrcToLoopVideo(page);
+        await toggleVideoLoop(page);
+        await bindAudioToScreenShareMediaStream(page);
+        await startVideo(page);
     });
 
     await page.exposeFunction('onNewMessageReceived', async (message: string) => {
@@ -421,28 +511,31 @@ const bindQueueToVideoTag = async (page: Page) => {
                 videoPath = videoPath.replace(/^"|"$/g, '');
 
                 try {
-                    //Reset attributes
+                    // Reset attributes
+                    state.screenShared && (await disconnectFromVoiceChannel(page));
                     await setVideoLoopFalse(page);
+                    await unbindVideoFromScreenShareMediaStream(page);
+                    await unbindAudioFromScreenShareMediaStream(page);
 
+                    // Set video src
                     await setSrcOnVideoTag(page, videoPath);
 
-                    // if (!state.streamAlreadyBound) {
-                    await bindMixedStreamToScreenShare(page);
-                    // }
+                    // Setup Stream
+                    await bindVideoToScreenShareMediaStream(page);
+                    await bindAudioToScreenShareMediaStream(page);
 
-                    await startVideo(page);
-
+                    // Connect to the voice channel and share the screen
                     if (!state.connectedToVoiceChannel) {
                         await connectToVoiceChannel(page);
                     }
-
                     if (!state.screenShared) {
                         await shareScreen(page);
                     }
 
-                    await bindQueueToVideoTag(page);
+                    // Play the video
+                    await startVideo(page);
                 } catch (e) {
-                    await setSrcToLoopVideo(page);
+                    await stopScreenSharing(page);
                     console.error("Couldn't connect and stream", e);
                 }
             } else if (message === '$$resume') {
@@ -451,7 +544,8 @@ const bindQueueToVideoTag = async (page: Page) => {
                 await pauseVideo(page);
             } else if (message === '$$stop') {
                 try {
-                    await removeSrcToVideoTag(page);
+                    await unbindVideoFromScreenShareMediaStream(page);
+                    await unbindAudioFromScreenShareMediaStream(page);
                     await disconnectFromVoiceChannel(page);
                 } catch (e) {
                     console.error("Couldn't disconnect from the stream:", e);
