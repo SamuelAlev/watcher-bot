@@ -1,6 +1,8 @@
 declare namespace NodeJS {
     export interface ProcessEnv {
+        CHROME_BIN: string;
         DEBUG: string;
+        HEADLESS: string;
         VIDEO_FPS: string;
         WEBSERVER_PORT: string;
         DISCORD_DOMAIN: string;
