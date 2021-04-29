@@ -28,6 +28,7 @@
         "fastify-static": "^4.0.1",
         "puppeteer": "^9.0.0",
         "puppeteer-extra": "^3.1.18",
-        "puppeteer-extra-plugin-stealth": "^2.7.7"
+        "puppeteer-extra-plugin-stealth": "^2.7.7",
+        "youtube-dl-exec": "^1.2.3"
     }
 }
