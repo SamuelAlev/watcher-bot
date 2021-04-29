@@ -432,7 +432,7 @@ const bindQueueToVideoTag = async (page: Page) => {
             '--disable-site-isolation-trials',
         ],
         // ignoreDefaultArgs: ['--mute-audio'],
-        headless: false,
+        // headless: false,
     } as LaunchOptions);
 
     const page = await browser.newPage();
