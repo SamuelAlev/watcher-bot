@@ -12,6 +12,7 @@ export default async (page: Page) => {
             audio.setAttribute('id', 'audio-to-play');
             audio.setAttribute('crossorigin', 'anonymous');
             audio.setAttribute('controls', '');
+            audio.setAttribute('style', 'visibility: hidden;');
 
             audio.onerror = () => reject('Error while adding the audio');
 

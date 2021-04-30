@@ -13,6 +13,7 @@ export default async (page: Page) => {
             video.setAttribute('muted', '');
             video.setAttribute('crossorigin', 'anonymous');
             video.setAttribute('controls', '');
+            video.setAttribute('style', 'visibility: hidden;');
 
             video.onerror = () => reject('Error while adding the video');
 

@@ -22,6 +22,8 @@ export default async (page: Page, state: State, parameters: string[]) => {
     let videoPath = parameters[0].replace(/^"|"$/g, '');
     let audioPath = videoPath;
 
+    console.log([videoPath, audioPath]);
+
     // Is youtube
     if (videoPath.match(/^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/)) {
         console.log('YOUTUBE');
