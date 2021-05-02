@@ -9,14 +9,12 @@ import FastifyCors from 'fastify-cors';
 
 import addCanvasTagInPage from './functions/addCanvasTagInPage';
 import addVideoTagInPage from './functions/addVideoTagInPage';
-import bindAudioToScreenShareMediaStream from './functions/bindAudioToScreenShareMediaStream';
 import bindEmptyMediaStreamToScreenShare from './functions/bindEmptyMediaStreamToScreenShare';
 import bindQueueToVideoTag from './functions/bindQueueToVideoTag';
 import bindVideoTagToCanvasTag from './functions/bindVideoTagToCanvasTag';
 import removeTooltip from './functions/removeTooltip';
 import setSrcToLoopVideo from './functions/setSrcToLoopVideo';
 import startVideo from './functions/startVideo';
-import toggleVideoLoop from './functions/toggleVideoLoop';
 import unbindAudioFromScreenShareMediaStream from './functions/unbindAudioFromScreenShareMediaStream';
 
 import loop from './commands/loop';
@@ -34,6 +32,8 @@ import bindVideoToScreenShareMediaStream from './functions/bindVideoToScreenShar
 import removeSrcFromVideoTag from './functions/removeSrcFromVideoTag';
 import removeSrcFromAudioTag from './functions/removeSrcFromAudioTag';
 import setVideoLoop from './functions/setVideoLoop';
+import loginOnDiscord from './functions/loginOnDiscord';
+import sendMessage, { MessageEmbed } from './functions/sendMessage';
 
 dotenv.config();
 
@@ -42,10 +42,8 @@ const {
     WEBSERVER_PORT,
     DISCORD_DOMAIN,
     DISCORD_LOGIN_PATH,
-    DISCORD_MAIL_ADDRESS,
-    DISCORD_PASSWORD,
     DISCORD_SERVER_ID,
-    DISCORD_BOT_CHANNEL_ID,
+    DISCORD_BOT_COMMAND_CHANNEL_ID,
 } = process.env;
 
 const DEBUG = process.env.DEBUG === 'true';
@@ -56,6 +54,7 @@ export interface State {
     videoStreamBound: boolean;
     connectedToVoiceChannel: boolean;
     screenShared: boolean;
+    isVideoPlaying: boolean;
 }
 
 const state: State = {
@@ -63,13 +62,16 @@ const state: State = {
     videoStreamBound: false,
     connectedToVoiceChannel: false,
     screenShared: false,
+    isVideoPlaying: false,
 };
 
-export interface Command {
-    [key: string]: (page: Page, state: State, parameters: string[]) => Promise<void>;
+export type Command = (page: Page, state: State, parameters: string[]) => Promise<void>;
+
+export interface CommandList {
+    [key: string]: Command;
 }
 
-const commands: Command = {
+const commands: CommandList = {
     loop,
     np,
     pause,
@@ -80,6 +82,12 @@ const commands: Command = {
     stop,
     volume,
 };
+
+export interface MessageMetadata {
+    author: string;
+    authorId: string;
+    createdAt: string;
+}
 
 (async () => {
     const server = fastify();
@@ -109,36 +117,12 @@ const commands: Command = {
     await page.setBypassCSP(true);
 
     await page.goto(
-        `${DISCORD_DOMAIN}${DISCORD_LOGIN_PATH}?redirect_to=%2Fchannels%2F${DISCORD_SERVER_ID}%2F${DISCORD_BOT_CHANNEL_ID}` as string,
+        `${DISCORD_DOMAIN}${DISCORD_LOGIN_PATH}?redirect_to=%2Fchannels%2F${DISCORD_SERVER_ID}%2F${DISCORD_BOT_COMMAND_CHANNEL_ID}` as string,
         { waitUntil: 'networkidle2' },
     );
 
-    /**
-     * Login on Discord
-     */
-    const email = await page.$('input[name=email]');
-    if (!email) {
-        throw new Error('No email field found');
-    }
-    await email.focus();
-    await email.type(DISCORD_MAIL_ADDRESS as string);
+    await loginOnDiscord(page);
 
-    const password = await page.$('input[name=password]');
-    if (!password) {
-        throw new Error('No password field found');
-    }
-    await password.focus();
-    await password.type(DISCORD_PASSWORD as string);
-
-    await page.screenshot({ path: 'logs/1-credentials-set.jpg' });
-
-    await page.click('button[type="submit"]');
-
-    await page.screenshot({ path: 'logs/2-log-in.jpg' });
-
-    /**
-     * Message watcher
-     */
     await page.waitForSelector('#channels', { visible: true });
     DEBUG && console.log('Logged in!');
 
@@ -167,13 +151,12 @@ const commands: Command = {
         await setSrcToLoopVideo(page, state);
         await setVideoLoop(page, true);
         await bindVideoToScreenShareMediaStream(page, state);
-        // await bindAudioToScreenShareMediaStream(page, state);
         await startVideo(page);
     });
 
     await page.exposeFunction('onNewMessageReceived', async (message: string) => {
         if (message.startsWith('$$')) {
-            DEBUG && console.log('=== New message received ===');
+            DEBUG && console.log('=== New command received ===');
 
             const command = message.split(' ')[0].replace('$$', '');
             const parameters = (message.match(/(?:[^\s"]+|"[^"]*")+/g) || []).splice(1);
@@ -196,6 +179,7 @@ const commands: Command = {
                         className.startsWith('message-'),
                     );
                     if (messageElement) {
+                        //TODO: add message metadata (author, authorId, createdAt, ...)
                         window.onNewMessageReceived(
                             (newElement.querySelector('div[class*="message"]') as HTMLParagraphElement).innerText,
                         );

@@ -1,4 +1,5 @@
 import { Page } from 'puppeteer';
+import { State } from '..';
 
 export default async (page: Page) => {
     const DEBUG = process.env.DEBUG === 'true';

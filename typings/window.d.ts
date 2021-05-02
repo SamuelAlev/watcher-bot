@@ -1,6 +1,8 @@
+import { MessageMetadata } from '../src';
+
 declare global {
     interface Window {
-        onNewMessageReceived: (text: string) => void;
+        onNewMessageReceived: (text: string, metadata?: MessageMetadata) => void;
         onVideoEnded: () => void;
         logger: (...args: any) => void;
 
