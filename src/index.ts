@@ -40,6 +40,7 @@ dotenv.config();
 const {
     CHROME_BIN,
     WEBSERVER_PORT,
+    BOT_PREFIX,
     DISCORD_DOMAIN,
     DISCORD_LOGIN_PATH,
     DISCORD_SERVER_ID,
@@ -155,10 +156,10 @@ export interface MessageMetadata {
     });
 
     await page.exposeFunction('onNewMessageReceived', async (message: string) => {
-        if (message.startsWith('$$')) {
+        if (message.startsWith(BOT_PREFIX)) {
             DEBUG && console.log('=== New command received ===');
 
-            const command = message.split(' ')[0].replace('$$', '');
+            const command = message.split(' ')[0].replace(BOT_PREFIX, '');
             const parameters = (message.match(/(?:[^\s"]+|"[^"]*")+/g) || []).splice(1);
 
             DEBUG && console.log(`${command}(${parameters.join(', ')})`);

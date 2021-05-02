@@ -7,6 +7,7 @@ declare namespace NodeJS {
         WEBSERVER_PORT: string;
         BOT_NAME: string;
         BOT_AVATAR: string;
+        BOT_PREFIX: string;
         DISCORD_DOMAIN: string;
         DISCORD_LOGIN_PATH: string;
         DISCORD_MAIL_ADDRESS: string;
