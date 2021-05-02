@@ -1,7 +1,6 @@
 import { Page } from 'puppeteer';
-import { State } from '..';
-import startVideo from '../functions/startVideo';
+import startVideo from '../functions/startVideoAndAudioTags';
 
-export default async (page: Page, state: State) => {
+export default async (page: Page) => {
     await startVideo(page);
 };

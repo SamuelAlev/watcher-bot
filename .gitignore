@@ -2,3 +2,4 @@ node_modules
 logs/**
 !logs/.gitkeep
 .env
+src/database/bot.db

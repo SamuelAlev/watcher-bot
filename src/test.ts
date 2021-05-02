@@ -1,10 +1,9 @@
 import youtubedl from 'youtube-dl-exec';
 
 (async () => {
-    const result = await youtubedl('https://www.youtube.com/watch?v=dQw4w9WgXcQ', {
+    const result = await youtubedl('https://www.twitch.tv/bobross', {
         getUrl: true,
-        format: 'bestvideo,bestaudio',
     });
     //@ts-ignore
-    console.log((result as string).split('\n'));
+    console.log(result as string);
 })();

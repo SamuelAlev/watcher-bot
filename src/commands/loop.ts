@@ -1,7 +1,6 @@
 import { Page } from 'puppeteer';
-import { State } from '..';
-import toggleVideoLoop from '../functions/toggleVideoLoop';
+import toggleVideoLoop from '../functions/toggleVideoTagLoop';
 
-export default async (page: Page, state: State) => {
+export default async (page: Page) => {
     await toggleVideoLoop(page);
 };

@@ -3,7 +3,6 @@ import { State } from '..';
 
 export default async (page: Page, state: State) => {
     const { DISCORD_VOICE_CHANNEL_ID } = process.env;
-    console.log(`a[data-list-item-id="channels___${DISCORD_VOICE_CHANNEL_ID}"]`);
 
     const DEBUG = process.env.DEBUG === 'true';
 

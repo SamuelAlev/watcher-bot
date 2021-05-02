@@ -1,35 +1,34 @@
 import { Page } from 'puppeteer';
+import { Database } from 'sqlite3';
 import youtubedl from 'youtube-dl-exec';
-import { State } from '..';
-import bindAudioToScreenShareMediaStream from '../functions/bindAudioToScreenShareMediaStream';
-import bindVideoToScreenShareMediaStream from '../functions/bindVideoToScreenShareMediaStream';
-import connectToVoiceChannel from '../functions/connectToVoiceChannel';
-import disconnectFromVoiceChannel from '../functions/disconnectFromVoiceChannel';
-import setSrcOnAudioTag from '../functions/setSrcOnAudioTag';
-import setSrcOnVideoTag from '../functions/setSrcOnVideoTag';
-import setVideoLoop from '../functions/setVideoLoop';
-import startScreenSharing from '../functions/startScreenSharing';
-import startVideo from '../functions/startVideo';
-import unbindAudioFromScreenShareMediaStream from '../functions/unbindAudioFromScreenShareMediaStream';
-import unbindVideoFromScreenShareMediaStream from '../functions/unbindVideoFromScreenShareMediaStream';
-import stop from './stop';
+import { PlayStatus, State } from '..';
+import countItemInQueue from '../database/countItemInQueue';
+import getFirstItemInQueue from '../database/getFirstItemInQueue';
+import insertItemInQueue from '../database/insertItemInQueue';
+import playVideoOnScreenShareMediaStream from '../functions/playVideoOnScreenShareMediaStream';
+import sendMessage from '../functions/sendMessage';
 
-export default async (page: Page, state: State, parameters: string[]) => {
+export default async (page: Page, state: State, parameters: string[], database: Database) => {
     const DEBUG = process.env.DEBUG === 'true';
 
     if (!parameters[0]) {
-        throw new Error('No link given');
+        await sendMessage({
+            title: 'Error while adding video',
+            description: 'No link given',
+        });
     }
 
-    let videoPath = parameters[0].replace(/^"|"$/g, '');
-    let audioPath = videoPath;
+    const originalLink = parameters[0].replace(/^"|"$/g, '');
+
+    let videoLink = originalLink;
+    let audioLink = videoLink;
 
     // Is youtube
-    if (videoPath.match(/^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/)) {
+    if (videoLink.includes('youtube') || videoLink.includes('youtu.be')) {
         DEBUG && console.log('Getting the video and audio from youtube');
 
         try {
-            const content = await youtubedl(videoPath, {
+            const content = await youtubedl(videoLink, {
                 getUrl: true,
                 format: 'bestvideo,bestaudio',
             });
@@ -37,42 +36,58 @@ export default async (page: Page, state: State, parameters: string[]) => {
             //@ts-ignore
             const contentArray = content.split('\n');
 
-            videoPath = contentArray[0];
-            audioPath = contentArray[1];
+            videoLink = contentArray[0];
+            audioLink = contentArray[1];
         } catch {
             throw new Error('Unable to get the video from YouTube');
         }
     }
 
+    if (videoLink.includes('pornhub') || videoLink.includes('clips.twitch.tv')) {
+        DEBUG && console.log('Getting the video and audio');
+
+        try {
+            const content = await youtubedl(videoLink, {
+                getUrl: true,
+            });
+
+            //@ts-ignore
+            videoLink = content;
+            //@ts-ignore
+            audioLink = content;
+        } catch {
+            throw new Error('Unable to get the video');
+        }
+    }
+
+    // Add to the queue
     try {
-        // Reset attributes
-        state.screenShared && (await disconnectFromVoiceChannel(page));
-        await setVideoLoop(page, false);
-        await unbindVideoFromScreenShareMediaStream(page, state);
-        await unbindAudioFromScreenShareMediaStream(page, state);
+        const count = await countItemInQueue(database);
 
-        // Set video src
-        await setSrcOnVideoTag(page, videoPath);
-        await setSrcOnAudioTag(page, audioPath);
+        await insertItemInQueue(database, {
+            id: 0,
+            originalVideoLink: originalLink,
+            videoLink: videoLink,
+            audioLink: audioLink,
+            status: PlayStatus.Queued,
+            createdAt: new Date().toISOString(),
+        });
 
-        // Setup Stream
-        await bindVideoToScreenShareMediaStream(page, state);
-        await bindAudioToScreenShareMediaStream(page, state);
+        await sendMessage({
+            title: 'Video added to the queue',
+            description: `${originalLink} has been added to the queue, ${
+                count === 0
+                    ? 'the bot will arrive soon'
+                    : `there ${count > 1 ? `are ${count} videos` : `is 1 video`} before`
+            }.`,
+        });
+    } catch {
+        console.error("Couldn't add the video to the queue");
+    }
 
-        // Connect to the voice channel and share the screen
-        if (!state.connectedToVoiceChannel) {
-            await connectToVoiceChannel(page, state);
-        }
-        if (!state.screenShared) {
-            await startScreenSharing(page, state);
-        }
-
-        // Play the video
-        await startVideo(page);
-
-        state.isVideoPlaying = true;
-    } catch (e) {
-        await stop(page, state);
-        console.error("Couldn't connect and stream", e);
+    if (!state.currentlyPlaying) {
+        const item = await getFirstItemInQueue(database);
+        state.currentlyPlaying = item;
+        await playVideoOnScreenShareMediaStream(page, state, item.videoLink, item.audioLink);
     }
 };

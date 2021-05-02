@@ -16,10 +16,11 @@ export default async (page: Page, state: State) => {
     const duration = await getVideoDuration(page);
     const currentTime = await getVideoTime(page);
 
-    if (state.isVideoPlaying) {
+    if (state.currentlyPlaying) {
         await sendMessage({
             title: 'Now Playing',
             description: `
+            Link: ${state.currentlyPlaying.originalVideoLink}
             Current time: ${formatToHHMMSS(currentTime)}/${formatToHHMMSS(duration || 0)}
         `,
         });

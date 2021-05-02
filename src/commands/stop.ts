@@ -10,7 +10,7 @@ export default async (page: Page, state: State) => {
         await unbindAudioFromScreenShareMediaStream(page, state);
         await disconnectFromVoiceChannel(page);
 
-        state.isVideoPlaying = false;
+        state.currentlyPlaying = undefined;
         state.screenShared = false;
         state.audioStreamBound = false;
         state.videoStreamBound = false;

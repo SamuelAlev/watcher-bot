@@ -1,21 +1,19 @@
-import path from 'path';
-import puppeteer from 'puppeteer-extra';
-import type { LaunchOptions, Page } from 'puppeteer';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import * as dotenv from 'dotenv';
-import { fastify } from 'fastify';
-import FastifyStatic from 'fastify-static';
-import FastifyCors from 'fastify-cors';
+import { join } from 'path';
+import puppeteer from 'puppeteer-extra';
+import sqlite3, { Database } from 'sqlite3';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import type { LaunchOptions, Page } from 'puppeteer';
 
+import addAudioTagInPage from './functions/addAudioTagInPage';
 import addCanvasTagInPage from './functions/addCanvasTagInPage';
 import addVideoTagInPage from './functions/addVideoTagInPage';
 import bindEmptyMediaStreamToScreenShare from './functions/bindEmptyMediaStreamToScreenShare';
 import bindQueueToVideoTag from './functions/bindQueueToVideoTag';
 import bindVideoTagToCanvasTag from './functions/bindVideoTagToCanvasTag';
+import initDatabase from './functions/initDatabase';
+import loginOnDiscord from './functions/loginOnDiscord';
 import removeTooltip from './functions/removeTooltip';
-import setSrcToLoopVideo from './functions/setSrcToLoopVideo';
-import startVideo from './functions/startVideo';
-import unbindAudioFromScreenShareMediaStream from './functions/unbindAudioFromScreenShareMediaStream';
 
 import loop from './commands/loop';
 import np from './commands/np';
@@ -26,20 +24,15 @@ import seek from './commands/seek';
 import speed from './commands/speed';
 import stop from './commands/stop';
 import volume from './commands/volume';
-import addAudioTagInPage from './functions/addAudioTagInPage';
-import unbindVideoFromScreenShareMediaStream from './functions/unbindVideoFromScreenShareMediaStream';
-import bindVideoToScreenShareMediaStream from './functions/bindVideoToScreenShareMediaStream';
-import removeSrcFromVideoTag from './functions/removeSrcFromVideoTag';
-import removeSrcFromAudioTag from './functions/removeSrcFromAudioTag';
-import setVideoLoop from './functions/setVideoLoop';
-import loginOnDiscord from './functions/loginOnDiscord';
-import sendMessage, { MessageEmbed } from './functions/sendMessage';
+import countItemInQueue from './database/countItemInQueue';
+import getFirstItemInQueue from './database/getFirstItemInQueue';
+import playVideoOnScreenShareMediaStream from './functions/playVideoOnScreenShareMediaStream';
+import setItemStatusById from './database/setItemStatusById';
 
 dotenv.config();
 
 const {
     CHROME_BIN,
-    WEBSERVER_PORT,
     BOT_PREFIX,
     DISCORD_DOMAIN,
     DISCORD_LOGIN_PATH,
@@ -55,7 +48,7 @@ export interface State {
     videoStreamBound: boolean;
     connectedToVoiceChannel: boolean;
     screenShared: boolean;
-    isVideoPlaying: boolean;
+    currentlyPlaying?: QueueItem;
 }
 
 const state: State = {
@@ -63,10 +56,10 @@ const state: State = {
     videoStreamBound: false,
     connectedToVoiceChannel: false,
     screenShared: false,
-    isVideoPlaying: false,
+    currentlyPlaying: undefined,
 };
 
-export type Command = (page: Page, state: State, parameters: string[]) => Promise<void>;
+export type Command = (page: Page, state: State, parameters: string[], database: Database) => Promise<void>;
 
 export interface CommandList {
     [key: string]: Command;
@@ -84,21 +77,34 @@ const commands: CommandList = {
     volume,
 };
 
-export interface MessageMetadata {
-    author: string;
-    authorId: string;
+export enum PlayStatus {
+    Error = 0,
+    Queued = 1,
+    Playing = 2,
+    Played = 3,
+}
+
+export interface QueueItem {
+    id: number;
+    originalVideoLink: string;
+    videoLink: string;
+    audioLink: string;
+    status: PlayStatus;
     createdAt: string;
 }
 
 (async () => {
-    const server = fastify();
-
-    server.register(FastifyCors);
-    server.register(FastifyStatic, {
-        root: path.join(__dirname, 'media'),
+    const database = await new Promise<Database>((resolve) => {
+        const dbInstance = new sqlite3.Database(join(__dirname, 'database', 'bot.db'), (error) => {
+            if (error) {
+                console.error("Can't open the database");
+                process.exit(-1);
+            }
+            resolve(dbInstance);
+        });
     });
 
-    server.listen(WEBSERVER_PORT);
+    await initDatabase(database);
 
     const browser = await puppeteer.use(StealthPlugin()).launch({
         executablePath: CHROME_BIN,
@@ -143,16 +149,28 @@ export interface MessageMetadata {
     await page.exposeFunction('logger', console.log);
 
     await page.exposeFunction('onVideoEnded', async () => {
-        DEBUG && console.log('Starting loop video');
+        if (state.currentlyPlaying) {
+            await setItemStatusById(database, PlayStatus.Played, state.currentlyPlaying.id);
+        } else {
+            throw new Error('Currently playing is not set');
+        }
 
-        await unbindVideoFromScreenShareMediaStream(page, state);
-        await unbindAudioFromScreenShareMediaStream(page, state);
-        await removeSrcFromVideoTag(page);
-        await removeSrcFromAudioTag(page);
-        await setSrcToLoopVideo(page, state);
-        await setVideoLoop(page, true);
-        await bindVideoToScreenShareMediaStream(page, state);
-        await startVideo(page);
+        const count = await countItemInQueue(database);
+
+        if (count) {
+            DEBUG && console.log('Video ended, next video will arrive');
+
+            const item = await getFirstItemInQueue(database);
+            console.log('next to play', item);
+
+            await setItemStatusById(database, PlayStatus.Playing, item.id);
+            state.currentlyPlaying = item;
+            await playVideoOnScreenShareMediaStream(page, state, item.videoLink, item.audioLink);
+        } else {
+            DEBUG && console.log('Video ended, leaving');
+
+            await stop(page, state);
+        }
     });
 
     await page.exposeFunction('onNewMessageReceived', async (message: string) => {
@@ -165,7 +183,7 @@ export interface MessageMetadata {
             DEBUG && console.log(`${command}(${parameters.join(', ')})`);
 
             if (command in commands) {
-                commands[command](page, state, parameters);
+                commands[command](page, state, parameters, database);
             }
         }
     });

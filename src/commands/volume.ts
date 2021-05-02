@@ -1,6 +1,6 @@
 import { Page } from 'puppeteer';
 import { State } from '..';
-import setVideoVolume from '../functions/setVideoVolume';
+import setVideoVolume from '../functions/setVideoAndAudioTagsVolume';
 
 export default async (page: Page, state: State, parameters: string[]) => {
     const volume = parseInt(parameters[0]);

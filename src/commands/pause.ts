@@ -1,7 +1,6 @@
 import { Page } from 'puppeteer';
-import { State } from '..';
 import pauseVideo from '../functions/pauseVideo';
 
-export default async (page: Page, state: State) => {
+export default async (page: Page) => {
     await pauseVideo(page);
 };
