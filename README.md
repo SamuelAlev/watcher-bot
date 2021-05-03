@@ -4,7 +4,7 @@
 [![Stars](https://img.shields.io/github/stars/SamuelAlev/discord-watcher-bot)](https://github.com/SamuelAlev/discord-watcher-bot/stargazers)
 [![Forks](https://img.shields.io/github/forks/SamuelAlev/discord-watcher-bot)](https://github.com/SamuelAlev/discord-watcher-bot/network/members)
 
-A Discord bot that allow to play video in your voice channel, written using TypeScript and Puppeteer.  
+A Discord bot that allow to play videos in your voice channel, written using TypeScript and Puppeteer.  
 It plays different videos from many website such as YouTube, Twitch, Crunchyroll and many more.
 
 
