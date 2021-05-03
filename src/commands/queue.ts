@@ -15,7 +15,7 @@ const getQueueMessage = (items: QueueItem[]): string => {
     return 'The queue is empty';
 };
 
-export default async (_page: Page, _state: State, _parameters: string[], database: Database) => {
+export default async (_page: Page, _state: State, database: Database) => {
     try {
         const items = await getQueuedItems(database);
         await sendMessage({

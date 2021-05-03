@@ -4,7 +4,7 @@ import { PlayStatus, State } from '..';
 import updateItemStatusWhereQueued from '../database/updateItemStatusWhereQueued';
 import sendMessage, { MessageEmbedColor } from '../functions/sendMessage';
 
-export default async (_page: Page, _state: State, _parameters: string[], database: Database) => {
+export default async (_page: Page, _state: State, database: Database, _parameters: string[]) => {
     try {
         await updateItemStatusWhereQueued(database, PlayStatus.Played);
         await sendMessage({

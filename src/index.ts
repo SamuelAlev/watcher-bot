@@ -62,7 +62,7 @@ const state: State = {
     currentlyPlaying: undefined,
 };
 
-export type Command = (page: Page, state: State, parameters: string[], database: Database) => Promise<void>;
+export type Command = (page: Page, state: State, database: Database, parameters: string[]) => Promise<void>;
 
 export interface CommandList {
     [key: string]: Command;
@@ -174,11 +174,11 @@ export interface QueueItem {
 
             await setItemStatusById(database, PlayStatus.Playing, item.id);
             state.currentlyPlaying = item;
-            await playVideoOnScreenShareMediaStream(page, state, item.videoLink, item.audioLink);
+            await playVideoOnScreenShareMediaStream(page, state, database, item.videoLink, item.audioLink);
         } else {
             DEBUG && console.log('Video ended, leaving');
 
-            await stop(page, state);
+            await stop(page, state, database);
         }
     });
 
@@ -192,7 +192,7 @@ export interface QueueItem {
             DEBUG && console.log(`${command}(${parameters.join(', ')})`);
 
             if (command in commands) {
-                return commands[command](page, state, parameters, database);
+                return commands[command](page, state, database, parameters);
             }
 
             return await sendMessage({

@@ -14,8 +14,9 @@ import unbindAudioFromScreenShareMediaStream from './unbindAudioFromScreenShareM
 import unbindVideoFromScreenShareMediaStream from './unbindVideoFromScreenShareMediaStream';
 
 import stop from '../commands/stop';
+import { Database } from 'sqlite3';
 
-export default async (page: Page, state: State, videoLink: string, audioLink: string) => {
+export default async (page: Page, state: State, database: Database, videoLink: string, audioLink: string) => {
     const DEBUG = process.env.DEBUG === 'true';
 
     DEBUG && console.log('Playing the video and audio');
@@ -42,7 +43,7 @@ export default async (page: Page, state: State, videoLink: string, audioLink: st
         // Play the video
         await startVideo(page);
     } catch (e) {
-        await stop(page, state);
+        await stop(page, state, database);
         console.error("Couldn't connect and stream", e);
     }
 };

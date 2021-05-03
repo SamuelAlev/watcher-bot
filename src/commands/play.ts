@@ -20,7 +20,7 @@ const getAddedToTheQueueMessage = (count: number, item: QueueItem): string => {
     return `${item.originalVideoLink} has been added to the queue, the bot will arrive soon.`;
 };
 
-export default async (page: Page, state: State, parameters: string[], database: Database) => {
+export default async (page: Page, state: State, database: Database, parameters: string[]) => {
     const DEBUG = process.env.DEBUG === 'true';
 
     if (!parameters.length) {
@@ -111,7 +111,7 @@ export default async (page: Page, state: State, parameters: string[], database: 
     if (!state.currentlyPlaying) {
         const item = await getFirstItemInQueue(database);
         state.currentlyPlaying = item;
-        await updateItemStatusById(database, PlayStatus.Playing, item.id)
-        await playVideoOnScreenShareMediaStream(page, state, item.videoLink, item.audioLink);
+        await updateItemStatusById(database, PlayStatus.Playing, item.id);
+        await playVideoOnScreenShareMediaStream(page, state, database, item.videoLink, item.audioLink);
     }
 };
