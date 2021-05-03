@@ -1,4 +1,4 @@
-# Discord Watcher Bot
+# Watcher Bot
 
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/SamuelAlev/discord-watcher-bot/blob/main/LICENSE)
 [![Stars](https://img.shields.io/github/stars/SamuelAlev/discord-watcher-bot)](https://github.com/SamuelAlev/discord-watcher-bot/stargazers)
@@ -21,5 +21,3 @@ Please see the [Setup Page](https://github.com/SamuelAlev/discord-watcher-bot/wi
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
-
-  
