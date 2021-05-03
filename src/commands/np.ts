@@ -2,7 +2,7 @@ import { Page } from 'puppeteer';
 import { State } from '..';
 import getVideoDuration from '../functions/getVideoDuration';
 import getVideoTime from '../functions/getVideoTime';
-import sendMessage from '../functions/sendMessage';
+import sendMessage, { MessageEmbedColor } from '../functions/sendMessage';
 
 const formatToHHMMSS = (seconds: number) => {
     const format = (val: number) => `0${Math.floor(val)}`.slice(-2);
@@ -20,16 +20,17 @@ export default async (page: Page, state: State) => {
         await sendMessage({
             title: 'Now Playing',
             description: `
-            Link: ${state.currentlyPlaying.originalVideoLink}
-            Current time: ${formatToHHMMSS(currentTime)}/${formatToHHMMSS(duration || 0)}
-        `,
+                Link: ${state.currentlyPlaying.originalVideoLink}
+                Current time: ${formatToHHMMSS(currentTime)}/${formatToHHMMSS(duration || 0)}
+            `,
         });
     } else {
-        await sendMessage({
+        return await sendMessage({
             title: 'Now Playing',
             description: `
                 No video is currently playing
             `,
+            color: MessageEmbedColor.Error,
         });
     }
 };

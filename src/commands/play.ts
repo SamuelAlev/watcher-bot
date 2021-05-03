@@ -1,20 +1,33 @@
 import { Page } from 'puppeteer';
 import { Database } from 'sqlite3';
 import youtubedl from 'youtube-dl-exec';
-import { PlayStatus, State } from '..';
+import { PlayStatus, QueueItem, State } from '..';
 import countItemInQueue from '../database/countItemInQueue';
 import getFirstItemInQueue from '../database/getFirstItemInQueue';
 import insertItemInQueue from '../database/insertItemInQueue';
+import updateItemStatusById from '../database/updateItemStatusById';
 import playVideoOnScreenShareMediaStream from '../functions/playVideoOnScreenShareMediaStream';
-import sendMessage from '../functions/sendMessage';
+import sendMessage, { MessageEmbedColor } from '../functions/sendMessage';
+
+const getAddedToTheQueueMessage = (count: number, item: QueueItem): string => {
+    if (count) {
+        let message = `${item.originalVideoLink} has been added to the queue, `;
+        message += `there ${count > 1 ? `are ${count} videos` : `is 1 video`} before.`;
+
+        return message;
+    }
+
+    return `${item.originalVideoLink} has been added to the queue, the bot will arrive soon.`;
+};
 
 export default async (page: Page, state: State, parameters: string[], database: Database) => {
     const DEBUG = process.env.DEBUG === 'true';
 
-    if (!parameters[0]) {
-        await sendMessage({
+    if (!parameters.length) {
+        return await sendMessage({
             title: 'Error while adding video',
             description: 'No link given',
+            color: MessageEmbedColor.Error,
         });
     }
 
@@ -39,7 +52,11 @@ export default async (page: Page, state: State, parameters: string[], database: 
             videoLink = contentArray[0];
             audioLink = contentArray[1];
         } catch {
-            throw new Error('Unable to get the video from YouTube');
+            return await sendMessage({
+                title: 'Error',
+                description: "Couldn't retreive the video from YouTube",
+                color: MessageEmbedColor.Error,
+            });
         }
     }
 
@@ -56,7 +73,11 @@ export default async (page: Page, state: State, parameters: string[], database: 
             //@ts-ignore
             audioLink = content;
         } catch {
-            throw new Error('Unable to get the video');
+            return await sendMessage({
+                title: 'Error',
+                description: "Couldn't retreive the video.",
+                color: MessageEmbedColor.Error,
+            });
         }
     }
 
@@ -64,30 +85,33 @@ export default async (page: Page, state: State, parameters: string[], database: 
     try {
         const count = await countItemInQueue(database);
 
-        await insertItemInQueue(database, {
+        const item = {
             id: 0,
             originalVideoLink: originalLink,
             videoLink: videoLink,
             audioLink: audioLink,
             status: PlayStatus.Queued,
             createdAt: new Date().toISOString(),
-        });
+        };
+
+        await insertItemInQueue(database, item);
 
         await sendMessage({
             title: 'Video added to the queue',
-            description: `${originalLink} has been added to the queue, ${
-                count === 0
-                    ? 'the bot will arrive soon'
-                    : `there ${count > 1 ? `are ${count} videos` : `is 1 video`} before`
-            }.`,
+            description: getAddedToTheQueueMessage(count, item),
         });
     } catch {
-        console.error("Couldn't add the video to the queue");
+        return await sendMessage({
+            title: 'Error',
+            description: "Couldn't add the video to the queue.",
+            color: MessageEmbedColor.Error,
+        });
     }
 
     if (!state.currentlyPlaying) {
         const item = await getFirstItemInQueue(database);
         state.currentlyPlaying = item;
+        await updateItemStatusById(database, PlayStatus.Playing, item.id)
         await playVideoOnScreenShareMediaStream(page, state, item.videoLink, item.audioLink);
     }
 };

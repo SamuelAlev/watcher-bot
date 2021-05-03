@@ -1,11 +1,17 @@
 import { Page } from 'puppeteer';
 import { State } from '..';
+import sendMessage, { MessageEmbedColor } from '../functions/sendMessage';
 import setVideoVolume from '../functions/setVideoAndAudioTagsVolume';
 
-export default async (page: Page, state: State, parameters: string[]) => {
+export default async (page: Page, _state: State, parameters: string[]) => {
     const volume = parseInt(parameters[0]);
+
     if (!volume) {
-        throw new Error('No volume given');
+        return await sendMessage({
+            title: 'Error',
+            description: 'No volume was given with the command.',
+            color: MessageEmbedColor.Error,
+        });
     }
     await setVideoVolume(page, volume);
 };

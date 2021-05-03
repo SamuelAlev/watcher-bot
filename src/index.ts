@@ -15,10 +15,12 @@ import initDatabase from './functions/initDatabase';
 import loginOnDiscord from './functions/loginOnDiscord';
 import removeTooltip from './functions/removeTooltip';
 
+import clear from './commands/clear';
 import loop from './commands/loop';
 import np from './commands/np';
 import pause from './commands/pause';
 import play from './commands/play';
+import queue from './commands/queue';
 import resume from './commands/resume';
 import seek from './commands/seek';
 import speed from './commands/speed';
@@ -27,7 +29,8 @@ import volume from './commands/volume';
 import countItemInQueue from './database/countItemInQueue';
 import getFirstItemInQueue from './database/getFirstItemInQueue';
 import playVideoOnScreenShareMediaStream from './functions/playVideoOnScreenShareMediaStream';
-import setItemStatusById from './database/setItemStatusById';
+import setItemStatusById from './database/updateItemStatusById';
+import sendMessage from './functions/sendMessage';
 
 dotenv.config();
 
@@ -66,15 +69,22 @@ export interface CommandList {
 }
 
 const commands: CommandList = {
+    clear,
+    c: clear,
     loop,
     np,
     pause,
     play,
+    p: play,
+    queue,
+    q: queue,
     resume,
+    r: resume,
     seek,
     speed,
     stop,
     volume,
+    v: volume,
 };
 
 export enum PlayStatus {
@@ -161,7 +171,6 @@ export interface QueueItem {
             DEBUG && console.log('Video ended, next video will arrive');
 
             const item = await getFirstItemInQueue(database);
-            console.log('next to play', item);
 
             await setItemStatusById(database, PlayStatus.Playing, item.id);
             state.currentlyPlaying = item;
@@ -183,8 +192,16 @@ export interface QueueItem {
             DEBUG && console.log(`${command}(${parameters.join(', ')})`);
 
             if (command in commands) {
-                commands[command](page, state, parameters, database);
+                return commands[command](page, state, parameters, database);
             }
+
+            return await sendMessage({
+                title: 'Error',
+                description: `
+                    The command "${command}" doesn't exist.
+                    You can get the command list with **${BOT_PREFIX}help**.
+                 `,
+            });
         }
     });
 

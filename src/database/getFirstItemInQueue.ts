@@ -1,5 +1,5 @@
 import { Database, RunResult } from 'sqlite3';
-import { QueueItem } from '..';
+import { PlayStatus, QueueItem } from '..';
 
 export default async (database: Database) => {
     const DEBUG = process.env.DEBUG === 'true';
@@ -9,19 +9,22 @@ export default async (database: Database) => {
     }
 
     return await new Promise<QueueItem>((resolve, reject) => {
-        database.get(`SELECT * FROM queue WHERE status = 1`, (error: Error, row: RunResult) => {
-            //@ts-ignore
-            const item = row as QueueItem;
+        database.get(
+            `SELECT * FROM queue WHERE status = ${PlayStatus.Playing} OR status = ${PlayStatus.Queued}`,
+            (error: Error, row: RunResult) => {
+                //@ts-ignore
+                const item = row as QueueItem;
 
-            if (error) {
-                reject(error);
-            }
+                if (error) {
+                    reject(error);
+                }
 
-            if (DEBUG) {
-                console.log(`First entry to be played in the queue:`, item);
-            }
+                if (DEBUG) {
+                    console.log(`First entry to be played in the queue:`, item);
+                }
 
-            resolve(item);
-        });
+                resolve(item);
+            },
+        );
     });
 };
