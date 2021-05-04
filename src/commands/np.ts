@@ -27,9 +27,7 @@ export default async (page: Page, state: State) => {
     } else {
         return await sendMessage({
             title: 'Now Playing',
-            description: `
-                No video is currently playing
-            `,
+            description: 'No video is currently playing',
             color: MessageEmbedColor.Error,
         });
     }
