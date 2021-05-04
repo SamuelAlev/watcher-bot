@@ -20,4 +20,4 @@ Please see the [Setup Page](https://github.com/SamuelAlev/discord-watcher-bot/wi
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT](https://github.com/SamuelAlev/watcher-bot/blob/main/LICENSE)
