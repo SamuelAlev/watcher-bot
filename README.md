@@ -10,7 +10,7 @@ It plays different videos from many website such as YouTube, Twitch and many mor
 
 ## Features
 
-- Watch videos together from many sites, like YouTube, Twitch and more
+- Watch videos together from many sites, like YouTube, Twitch and more ([list here](https://github.com/SamuelAlev/watcher-bot/blob/main/src/supportedVideoSources.json))
 - Supports local files
 
 
