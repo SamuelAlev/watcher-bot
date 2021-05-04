@@ -13,7 +13,9 @@ import bindQueueToVideoTag from './functions/bindQueueToVideoTag';
 import bindVideoTagToCanvasTag from './functions/bindVideoTagToCanvasTag';
 import initDatabase from './functions/initDatabase';
 import loginOnDiscord from './functions/loginOnDiscord';
+import playVideoOnScreenShareMediaStream from './functions/playVideoOnScreenShareMediaStream';
 import removeTooltip from './functions/removeTooltip';
+import sendMessage from './functions/sendMessage';
 
 import clear from './commands/clear';
 import loop from './commands/loop';
@@ -23,14 +25,14 @@ import play from './commands/play';
 import queue from './commands/queue';
 import resume from './commands/resume';
 import seek from './commands/seek';
+import skip from './commands/skip';
 import speed from './commands/speed';
 import stop from './commands/stop';
 import volume from './commands/volume';
+
 import countItemInQueue from './database/countItemInQueue';
 import getFirstItemInQueue from './database/getFirstItemInQueue';
-import playVideoOnScreenShareMediaStream from './functions/playVideoOnScreenShareMediaStream';
-import setItemStatusById from './database/updateItemStatusById';
-import sendMessage from './functions/sendMessage';
+import updateItemStatusById from './database/updateItemStatusById';
 
 dotenv.config();
 
@@ -81,6 +83,8 @@ const commands: CommandList = {
     resume,
     r: resume,
     seek,
+    skip,
+    s: skip,
     speed,
     stop,
     volume,
@@ -160,7 +164,7 @@ export interface QueueItem {
 
     await page.exposeFunction('onVideoEnded', async () => {
         if (state.currentlyPlaying) {
-            await setItemStatusById(database, PlayStatus.Played, state.currentlyPlaying.id);
+            await updateItemStatusById(database, PlayStatus.Played, state.currentlyPlaying.id);
         } else {
             throw new Error('Currently playing is not set');
         }
@@ -172,7 +176,7 @@ export interface QueueItem {
 
             const item = await getFirstItemInQueue(database);
 
-            await setItemStatusById(database, PlayStatus.Playing, item.id);
+            await updateItemStatusById(database, PlayStatus.Playing, item.id);
             state.currentlyPlaying = item;
             await playVideoOnScreenShareMediaStream(page, state, database, item.videoLink, item.audioLink);
         } else {

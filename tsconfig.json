@@ -16,7 +16,8 @@
         "noImplicitReturns": false,
         "noUnusedParameters": false,
         "pretty": true,
-        "stripInternal": true
+        "stripInternal": true,
+        "resolveJsonModule": true
     },
     "ts-node": {
         "files": true

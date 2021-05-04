@@ -1,13 +1,14 @@
 import { Page } from 'puppeteer';
 import { Database } from 'sqlite3';
-import youtubedl from 'youtube-dl-exec';
 import { PlayStatus, QueueItem, State } from '..';
 import countItemInQueue from '../database/countItemInQueue';
 import getFirstItemInQueue from '../database/getFirstItemInQueue';
 import insertItemInQueue from '../database/insertItemInQueue';
 import updateItemStatusById from '../database/updateItemStatusById';
+import getVideoAndAudioFromUrl from '../functions/getVideoAndAudioFromUrl';
 import playVideoOnScreenShareMediaStream from '../functions/playVideoOnScreenShareMediaStream';
 import sendMessage, { MessageEmbedColor } from '../functions/sendMessage';
+import supportedVideoSources from '../supportedVideoSources.json';
 
 const getAddedToTheQueueMessage = (count: number, item: QueueItem): string => {
     if (count) {
@@ -21,11 +22,9 @@ const getAddedToTheQueueMessage = (count: number, item: QueueItem): string => {
 };
 
 export default async (page: Page, state: State, database: Database, parameters: string[]) => {
-    const DEBUG = process.env.DEBUG === 'true';
-
     if (!parameters.length) {
         return await sendMessage({
-            title: 'Error while adding video',
+            title: 'Error',
             description: 'No link given',
             color: MessageEmbedColor.Error,
         });
@@ -36,46 +35,22 @@ export default async (page: Page, state: State, database: Database, parameters: 
     let videoLink = originalLink;
     let audioLink = videoLink;
 
-    // Is youtube
-    if (videoLink.includes('youtube') || videoLink.includes('youtu.be')) {
-        DEBUG && console.log('Getting the video and audio from youtube');
+    if (
+        supportedVideoSources['youtube-dl'].some((host) => {
+            console.log(originalLink, 'includes', host);
 
+            return originalLink.includes(host);
+        })
+    ) {
         try {
-            const content = await youtubedl(videoLink, {
-                getUrl: true,
-                format: 'bestvideo,bestaudio',
-            });
+            const videoSources = await getVideoAndAudioFromUrl(originalLink);
 
-            //@ts-ignore
-            const contentArray = content.split('\n');
-
-            videoLink = contentArray[0];
-            audioLink = contentArray[1];
+            videoLink = videoSources.videoLink;
+            audioLink = videoSources.audioLink;
         } catch {
             return await sendMessage({
                 title: 'Error',
-                description: "Couldn't retreive the video from YouTube",
-                color: MessageEmbedColor.Error,
-            });
-        }
-    }
-
-    if (videoLink.includes('pornhub') || videoLink.includes('clips.twitch.tv')) {
-        DEBUG && console.log('Getting the video and audio');
-
-        try {
-            const content = await youtubedl(videoLink, {
-                getUrl: true,
-            });
-
-            //@ts-ignore
-            videoLink = content;
-            //@ts-ignore
-            audioLink = content;
-        } catch {
-            return await sendMessage({
-                title: 'Error',
-                description: "Couldn't retreive the video.",
+                description: "Couldn't get the video from the link.",
                 color: MessageEmbedColor.Error,
             });
         }

@@ -1,0 +1,14 @@
+{
+    "youtube-dl": [
+        "youtube.com",
+        "youtu.be",
+        "twitter.com",
+        "clips.twitch.tv",
+        "dailymotion.com",
+        "dropbox.com",
+        "drive.google.com",
+        "reddit.com",
+        "redd.it",
+        "vimeo.com"
+    ]
+}
