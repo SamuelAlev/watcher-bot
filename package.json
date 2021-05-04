@@ -1,6 +1,6 @@
 {
     "name": "discord-watcher-bot",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "A Discord bot that allow you to watch videos altogether while being in a voice channel",
     "main": "src/index.ts",
     "scripts": {
