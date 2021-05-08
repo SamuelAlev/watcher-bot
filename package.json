@@ -1,10 +1,11 @@
 {
     "name": "discord-watcher-bot",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A Discord bot that allow you to watch videos altogether while being in a voice channel",
     "main": "src/index.ts",
     "scripts": {
-        "start": "ts-node src/index.ts"
+        "start": "ts-node src/index.ts",
+        "initialize": "ts-node scripts/setup/index.ts"
     },
     "author": "Samuel Alev <samuel.alev@protonmail.com>",
     "license": "MIT",
@@ -24,6 +25,8 @@
         "typescript": "^4.2.4"
     },
     "dependencies": {
+        "dialog": "^0.3.1",
+        "envfile": "^6.14.0",
         "node-fetch": "^2.6.1",
         "puppeteer": "^9.0.0",
         "puppeteer-extra": "^3.1.18",

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Verify your mail</title>
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+        <style>
+            body {
+                height: 100vh;
+                background-color: #202124;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: 'Roboto', sans-serif;
+            }
+
+            h1,
+            p {
+                margin: 0;
+            }
+
+            .container {
+                background-color: white;
+                padding: 32px;
+                border-radius: 4px;
+            }
+
+            .title {
+                padding-bottom: 12px;
+                font-size: 24px;
+            }
+
+            .verify-text {
+                padding-bottom: 24px;
+            }
+
+            .invitation-text {
+                padding-bottom: 12px;
+            }
+
+            .server-invitation-input {
+                border: 1px solid #d1d5db;
+                border-radius: 4px;
+                font-size: 16px;
+                padding: 8px;
+                width: calc(100% - 16px);
+                margin-bottom: 48px;
+            }
+
+            .confirm-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .confirm {
+                padding: 8px 16px;
+                background-color: #10b981;
+                border-radius: 4px;
+                border: none;
+                color: white;
+                font-size: 18px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="title">Verify your mail address</h1>
+            <p class="verify-text">Please connect to your mailbox and verify your mail address on Discord.</p>
+
+            <h1 class="title">Server Invitation</h1>
+            <p class="invitation-text">
+                Paste your server invitation link, the bot will automaticaly join your server.
+            </p>
+
+            <form id="invitation-form">
+                <input
+                    class="server-invitation-input"
+                    name="server-invitation-input"
+                    type="url"
+                    placeholder="https://discord.gg/"
+                    autofocus
+                />
+
+                <div class="confirm-container">
+                    <button type="submit" class="confirm">Confirm</button>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            const invitationForm = document.getElementById('invitation-form');
+
+            invitationForm.addEventListener('submit', (event, data) => {
+                event.preventDefault();
+
+                const formData = new FormData(event.target);
+                window.location = formData.get('server-invitation-input');
+            });
+        </script>
+    </body>
+</html>
