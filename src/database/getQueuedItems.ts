@@ -4,9 +4,7 @@ import { PlayStatus, QueueItem } from '..';
 export default async (database: Database) => {
     const DEBUG = process.env.DEBUG === 'true';
 
-    if (DEBUG) {
-        console.log('Getting the all entries to be played from the `queue` table');
-    }
+    DEBUG && console.log('Getting the all entries to be played from the `queue` table');
 
     return await new Promise<QueueItem[]>((resolve, reject) => {
         database.all(

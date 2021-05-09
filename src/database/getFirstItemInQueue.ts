@@ -4,9 +4,7 @@ import { PlayStatus, QueueItem } from '..';
 export default async (database: Database) => {
     const DEBUG = process.env.DEBUG === 'true';
 
-    if (DEBUG) {
-        console.log('Getting the first entry to be played from the `queue` table');
-    }
+    DEBUG && console.log('Getting the first entry to be played from the `queue` table');
 
     return await new Promise<QueueItem>((resolve, reject) => {
         database.get(
@@ -19,9 +17,7 @@ export default async (database: Database) => {
                     reject(error);
                 }
 
-                if (DEBUG) {
-                    console.log(`First entry to be played in the queue:`, item);
-                }
+                DEBUG && console.log(`First entry to be played in the queue:`, item);
 
                 resolve(item);
             },

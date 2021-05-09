@@ -7,16 +7,12 @@ export default async (page: Page, loopState: boolean) => {
         (DEBUG: boolean, loopState: boolean) => {
             const video = document.getElementById('video-to-play') as HTMLVideoElement;
             if (!video) {
-                if (DEBUG as boolean) {
-                    window.logger('No video tag found');
-                }
+                DEBUG && window.logger('No video tag found');
             }
 
             const audio = document.getElementById('audio-to-play') as HTMLVideoElement;
             if (!audio) {
-                if (DEBUG as boolean) {
-                    window.logger('No audio tag found');
-                }
+                DEBUG && window.logger('No audio tag found');
             }
 
             DEBUG && window.logger('loopState', loopState);

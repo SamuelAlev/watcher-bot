@@ -21,13 +21,9 @@ export default async (page: Page, state: State) => {
             const videoTrack = canvas.captureStream(VIDEO_FPS).getVideoTracks()[0];
             if (videoTrack) {
                 window.mixedStream.addTrack(videoTrack);
-                if (DEBUG) {
-                    window.logger('Video stream bound to `window.mixedStream`');
-                }
+                DEBUG && window.logger('Video stream bound to `window.mixedStream`');
             } else {
-                if (DEBUG) {
-                    window.logger('No video stream on the video tag to add');
-                }
+                DEBUG && window.logger('No video stream on the video tag to add');
             }
         },
         VIDEO_FPS,

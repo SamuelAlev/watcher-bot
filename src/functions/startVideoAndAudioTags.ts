@@ -6,16 +6,12 @@ export default async (page: Page) => {
     await page.evaluate((DEBUG: boolean) => {
         const video = document.getElementById('video-to-play') as HTMLVideoElement;
         if (!video) {
-            if (DEBUG as boolean) {
-                window.logger('No video tag found');
-            }
+            DEBUG && window.logger('No video tag found');
         }
 
         const audio = document.getElementById('audio-to-play') as HTMLVideoElement;
         if (!audio) {
-            if (DEBUG as boolean) {
-                window.logger('No audio tag found');
-            }
+            DEBUG && window.logger('No audio tag found');
         }
 
         if (window.mixedStream.getVideoTracks().length) {

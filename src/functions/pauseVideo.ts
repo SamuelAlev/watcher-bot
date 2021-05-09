@@ -17,9 +17,7 @@ export default async (page: Page) => {
                 (audio as HTMLAudioElement).pause();
                 (audio as HTMLAudioElement).currentTime = videoTag.currentTime;
             } else {
-                if (DEBUG as boolean) {
-                    window.logger('No video tag found');
-                }
+                DEBUG && window.logger('No video tag found');
             }
         },
         DEBUG,

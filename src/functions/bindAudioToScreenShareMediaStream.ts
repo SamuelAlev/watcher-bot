@@ -16,13 +16,9 @@ export default async (page: Page, state: State) => {
             const audioTrack = audio.captureStream(VIDEO_FPS).getAudioTracks()[0];
             if (audioTrack) {
                 window.mixedStream.addTrack(audioTrack);
-                if (DEBUG) {
-                    window.logger('Audio stream bound to `window.mixedStream`');
-                }
+                DEBUG && window.logger('Audio stream bound to `window.mixedStream`');
             } else {
-                if (DEBUG) {
-                    window.logger('No audio stream on the audio tag to add');
-                }
+                DEBUG && window.logger('No audio stream on the audio tag to add');
             }
         },
         VIDEO_FPS,
