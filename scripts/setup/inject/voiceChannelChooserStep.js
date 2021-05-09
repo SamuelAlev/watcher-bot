@@ -17,7 +17,5 @@ document.querySelectorAll('a[data-list-item-id^="channels___"]').forEach((node) 
         const voiceChannelAttribute = nodeClone.getAttribute('data-list-item-id');
         const voiceChannelId = voiceChannelAttribute.replace('channels___', '');
         window.onVoiceChannelChosen(voiceChannelId);
-
-        voiceChannelsTooltip.parentElement.removeChild(voiceChannelsTooltip);
     });
 });

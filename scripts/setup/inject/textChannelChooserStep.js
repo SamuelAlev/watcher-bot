@@ -17,7 +17,5 @@ document.querySelectorAll('a[data-list-item-id^="channels___"]').forEach((node) 
         const textChannelAttribute = nodeClone.getAttribute('data-list-item-id');
         const textChannelId = textChannelAttribute.replace('channels___', '');
         window.onTextChannelChosen(textChannelId);
-
-        textChannelsTooltip.parentElement.removeChild(textChannelsTooltip);
     });
 });
