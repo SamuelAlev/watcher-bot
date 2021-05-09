@@ -19,7 +19,7 @@ export default async (page: Page, loopState: boolean) => {
                 }
             }
 
-            window.logger('loopState', loopState);
+            DEBUG && window.logger('loopState', loopState);
 
             video.loop = loopState;
             audio.loop = loopState;
