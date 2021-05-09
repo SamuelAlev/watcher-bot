@@ -37,8 +37,6 @@ export default async (page: Page, state: State, database: Database, parameters: 
 
     if (
         supportedVideoSources['youtube-dl'].some((host) => {
-            console.log(originalLink, 'includes', host);
-
             return originalLink.includes(host);
         })
     ) {
