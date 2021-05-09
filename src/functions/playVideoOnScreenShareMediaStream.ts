@@ -38,6 +38,9 @@ export default async (page: Page, state: State, database: Database, videoLink: s
 
         // Connect to the voice channel and share the screen
         await connectToVoiceChannel(page, state);
+
+        await page.waitForSelector('div[class^="actionButtons-"] > button:nth-child(2)');
+
         await startScreenSharing(page, state);
 
         // Play the video
