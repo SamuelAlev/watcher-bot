@@ -46,7 +46,7 @@ const {
 } = process.env;
 
 const DEBUG = process.env.DEBUG === 'true';
-const HEADLESS = process.env.HEADLESS === 'true';
+const HEADLESS = process.env.HEADLESS !== 'false';
 
 export interface State {
     audioStreamBound: boolean;
@@ -121,8 +121,10 @@ export interface QueueItem {
     await initDatabase(database);
 
     const browser = await puppeteer.use(StealthPlugin()).launch({
-        executablePath: CHROME_BIN,
+        executablePath: CHROME_BIN || 'google-chrome-stable',
         args: [
+            '--no-sandbox',
+
             '--use-fake-ui-for-media-stream',
             '--use-fake-device-for-media-stream',
 
