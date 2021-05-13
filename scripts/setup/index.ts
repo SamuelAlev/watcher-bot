@@ -80,6 +80,9 @@ import dialog from 'dialog';
 
     await page.waitForNavigation({ timeout: 0 });
 
+    // Write to .env files
+    writeFileSync(join(__dirname, '..', '..', '.env'), stringify(envKeys));
+
     // Show Verify Your Email
     const mailVerificationStepHtml = readFileSync(join(__dirname, 'inject', 'mailVerificationStep.html'), 'utf8');
     await page.setContent(mailVerificationStepHtml);
@@ -106,6 +109,9 @@ import dialog from 'dialog';
     const pageUrlArray = page.url().split('/');
     envKeys['DISCORD_SERVER_ID'] = pageUrlArray[pageUrlArray.length - 2];
 
+    // Write to .env files
+    writeFileSync(join(__dirname, '..', '..', '.env'), stringify(envKeys));
+
     // Ask for bot webhook role
     await page.addScriptTag({
         path: join(__dirname, 'inject', 'askBotRoleStep.js'),
@@ -129,6 +135,9 @@ import dialog from 'dialog';
         });
     });
 
+    // Write to .env files
+    writeFileSync(join(__dirname, '..', '..', '.env'), stringify(envKeys));
+
     // Set bot voice channel
     await page.addScriptTag({
         path: join(__dirname, 'inject', 'voiceChannelChooserStep.js'),
@@ -140,6 +149,9 @@ import dialog from 'dialog';
             resolve();
         });
     });
+
+    // Write to .env files
+    writeFileSync(join(__dirname, '..', '..', '.env'), stringify(envKeys));
 
     // Create webhook
     const serverHeader = await page.$('header[class*="header-"]');
