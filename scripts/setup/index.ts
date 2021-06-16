@@ -155,17 +155,17 @@ import dialog from 'dialog';
 
     // Create webhook
     const serverHeader = await page.$('header[class*="header-"]');
-    await serverHeader?.evaluate((node) => node.click());
+    await serverHeader?.click();
 
     await page.waitForSelector('#guild-header-popout-settings');
 
     const serverSettings = await page.$('#guild-header-popout-settings');
-    await serverSettings?.evaluate((node) => node.click());
+    await serverSettings?.click();
 
     await page.waitForSelector('[aria-controls="INTEGRATIONS-tab"]');
 
     const serverIntegrationsSettings = await page.$('[aria-controls="INTEGRATIONS-tab"]');
-    await serverIntegrationsSettings?.evaluate((node) => node.click());
+    await serverIntegrationsSettings?.click();
 
     await page.waitForSelector('[class*="cardPrimaryEditable"]');
 
@@ -174,19 +174,19 @@ import dialog from 'dialog';
     );
 
     if (consultWebhookButton) {
-        await consultWebhookButton?.evaluate((node) => node.click());
+        await consultWebhookButton.click();
 
         const createWebhookButton = await page.$('[class*="createButton-"]');
-        await createWebhookButton?.evaluate((node) => node.click());
+        await createWebhookButton?.click();
     } else {
         const createWebhookButton = await page.$('[class*="divider-"] + [class*="cardPrimaryEditable"] button');
-        await createWebhookButton?.evaluate((node: HTMLButtonElement) => node.click());
+        await createWebhookButton?.click();
     }
 
     await page.waitForSelector('[class*="copyButton-"]');
 
     const copyWebhookUrlButton = await page.$('[class*="copyButton-"]');
-    await copyWebhookUrlButton?.evaluate((node) => node.click());
+    await copyWebhookUrlButton?.click();
 
     const webhookUrl = await page.evaluate(() => navigator.clipboard.readText());
     envKeys['DISCORD_WEBHOOK_URL'] = webhookUrl;
