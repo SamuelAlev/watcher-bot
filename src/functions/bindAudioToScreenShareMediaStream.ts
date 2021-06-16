@@ -12,7 +12,7 @@ export default async (page: Page, state: State) => {
                 throw new Error("Could't find the audio tag");
             }
 
-            window.logger('audio track on audio tag:', audio.captureStream(VIDEO_FPS).getAudioTracks());
+            DEBUG && window.logger('audio track on audio tag:', audio.captureStream(VIDEO_FPS).getAudioTracks());
             const audioTrack = audio.captureStream(VIDEO_FPS).getAudioTracks()[0];
             if (audioTrack) {
                 window.mixedStream.addTrack(audioTrack);
