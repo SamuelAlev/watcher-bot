@@ -1,4 +1,3 @@
-
 FROM node:16
 
 LABEL author="Samuel Alev <samuel.alev@protonmail.com>"
