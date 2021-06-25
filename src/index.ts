@@ -120,18 +120,23 @@ export interface QueueItem {
 
     await initDatabase(database);
 
+    const browserArgs = [
+        '--no-sandbox',
+
+        '--use-fake-ui-for-media-stream',
+        '--use-fake-device-for-media-stream',
+
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins',
+        '--disable-site-isolation-trials',
+    ];
+
+    if (process.env.DISABLE_GPU === 'true') browserArgs.push('--disable-gpu');
+    if (process.env.DISABLE_SOFTWARE_RASTERIZER === 'true') browserArgs.push('--disable-software-rasterizer');
+
     const browser = await puppeteer.use(StealthPlugin()).launch({
         executablePath: CHROME_BIN || 'google-chrome-stable',
-        args: [
-            '--no-sandbox',
-
-            '--use-fake-ui-for-media-stream',
-            '--use-fake-device-for-media-stream',
-
-            '--disable-web-security',
-            '--disable-features=IsolateOrigins',
-            '--disable-site-isolation-trials',
-        ],
+        args: browserArgs,
         headless: HEADLESS,
     } as LaunchOptions);
 
