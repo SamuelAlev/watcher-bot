@@ -43,6 +43,7 @@ const {
     DISCORD_LOGIN_PATH,
     DISCORD_SERVER_ID,
     DISCORD_BOT_COMMAND_CHANNEL_ID,
+    DISABLE_GPU,
 } = process.env;
 
 const DEBUG = process.env.DEBUG === 'true';
@@ -120,23 +121,20 @@ export interface QueueItem {
 
     await initDatabase(database);
 
-    const browserArgs = [
-        '--no-sandbox',
-
-        '--use-fake-ui-for-media-stream',
-        '--use-fake-device-for-media-stream',
-
-        '--disable-web-security',
-        '--disable-features=IsolateOrigins',
-        '--disable-site-isolation-trials',
-    ];
-
-    if (process.env.DISABLE_GPU === 'true') browserArgs.push('--disable-gpu');
-    if (process.env.DISABLE_SOFTWARE_RASTERIZER === 'true') browserArgs.push('--disable-software-rasterizer');
-
     const browser = await puppeteer.use(StealthPlugin()).launch({
         executablePath: CHROME_BIN || 'google-chrome-stable',
-        args: browserArgs,
+        args: [
+            '--no-sandbox',
+
+            '--use-fake-ui-for-media-stream',
+            '--use-fake-device-for-media-stream',
+
+            '--disable-web-security',
+            '--disable-features=IsolateOrigins',
+            '--disable-site-isolation-trials',
+
+            ...((DISABLE_GPU === 'true' && ['--disable-gpu', '--disable-software-rasterizer']) || []),
+        ],
         headless: HEADLESS,
     } as LaunchOptions);
 
