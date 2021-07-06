@@ -133,7 +133,7 @@ export interface QueueItem {
             '--disable-features=IsolateOrigins',
             '--disable-site-isolation-trials',
 
-            ...((DISABLE_GPU === 'true' && ['--disable-gpu', '--disable-software-rasterizer']) || []),
+            ...(DISABLE_GPU === 'true' ? ['--disable-gpu', '--disable-software-rasterizer'] : []),
         ],
         headless: HEADLESS,
     } as LaunchOptions);
