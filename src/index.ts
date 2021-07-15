@@ -42,6 +42,7 @@ const {
     DISCORD_LOGIN_PATH,
     DISCORD_SERVER_ID,
     DISCORD_BOT_COMMAND_CHANNEL_ID,
+    DISABLE_GPU,
 } = process.env;
 
 const DEBUG = process.env.DEBUG === 'true';
@@ -129,6 +130,8 @@ export interface QueueItem {
             '--disable-web-security',
             '--disable-features=IsolateOrigins',
             '--disable-site-isolation-trials',
+
+            ...(DISABLE_GPU === 'true' ? ['--disable-gpu', '--disable-software-rasterizer'] : []),
         ],
         headless: HEADLESS,
     } as LaunchOptions);
