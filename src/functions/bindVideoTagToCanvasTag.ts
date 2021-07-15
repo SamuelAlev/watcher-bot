@@ -21,12 +21,42 @@ export default async (page: Page) => {
             throw new Error("Could't get canvas context");
         }
 
-        video.onplay = () => {
-            const frame = () => {
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                requestAnimationFrame(frame);
-            };
-            requestAnimationFrame(frame);
+        const drawPlayIcon = (ctx: CanvasRenderingContext2D) => {
+            ctx.fillStyle = 'black';
+            ctx.globalAlpha = 0.5;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#DDD';
+            ctx.globalAlpha = 0.75;
+            ctx.beginPath();
+            const size = (canvas.height / 2) * 0.5;
+            ctx.moveTo(canvas.width / 2 + size / 2, canvas.height / 2);
+            ctx.lineTo(canvas.width / 2 - size / 2, canvas.height / 2 + size);
+            ctx.lineTo(canvas.width / 2 - size / 2, canvas.height / 2 - size);
+            ctx.closePath();
+            ctx.fill();
+            ctx.globalAlpha = 1;
         };
+
+        const updateCanvas = (ctx: CanvasRenderingContext2D, video: HTMLVideoElement, options: { scale: number }) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (video !== undefined) {
+                const vidH = video.videoHeight;
+                const vidW = video.videoWidth;
+                const top = canvas.height / 2 - (vidH / 2) * options.scale;
+                const left = canvas.width / 2 - (vidW / 2) * options.scale;
+                ctx.drawImage(video, left, top, vidW * options.scale, vidH * options.scale);
+
+                if (video.paused) {
+                    drawPlayIcon(ctx);
+                }
+            }
+
+            requestAnimationFrame(() => updateCanvas(ctx, video, options));
+        };
+
+        video.addEventListener('canplay', () => {
+            const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+            requestAnimationFrame(() => updateCanvas(ctx, video, { scale }));
+        });
     });
 };
