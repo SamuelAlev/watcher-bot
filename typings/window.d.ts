@@ -5,6 +5,7 @@ declare global {
         logger: (...args: any) => void;
 
         Hls: any;
+        hlsInstance: any;
 
         mixedStream: MediaStream;
     }

@@ -14,17 +14,23 @@ export default async (page: Page, videoPath: string) => {
                     return reject("Could't find the video tag");
                 }
 
-                if (videoPath.includes('.m3u8') && window.Hls.isSupported()) {
+                if (!window.hlsInstance) {
+                    window.hlsInstance = new window.Hls();
+                }
+                window.hlsInstance.detachMedia(video);
+
+                if (videoPath.includes('.m3u8')) {
                     DEBUG && console.log('Hls support the format');
-                    const hls = new window.Hls();
-                    hls.loadSource(videoPath);
-                    hls.attachMedia(video);
+                    window.hlsInstance.loadSource(videoPath);
+                    window.hlsInstance.attachMedia(video);
+                    window.hlsInstance.on(window.Hls.Events.MANIFEST_PARSED, function () {
+                        video.play();
+                    });
                 } else {
                     DEBUG && console.log('Hls does not support the format');
                     source.setAttribute('src', videoPath);
+                    (video as HTMLVideoElement).load();
                 }
-
-                (video as HTMLVideoElement).load();
 
                 (video as HTMLVideoElement).addEventListener('loadeddata', () => {
                     DEBUG && console.log('Video can play');

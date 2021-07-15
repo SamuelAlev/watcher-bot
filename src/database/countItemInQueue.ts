@@ -8,7 +8,7 @@ export default async (database: Database) => {
 
     return await new Promise<number>((resolve, reject) => {
         database.get(
-            `SELECT count(*) count FROM queue WHERE status = ${PlayStatus.Queued}`,
+            `SELECT count(*) count FROM queue WHERE status = ${PlayStatus.Playing} OR status = ${PlayStatus.Queued}`,
             (error: Error, row: RunResult) => {
                 //@ts-ignore
                 const count = row.count;

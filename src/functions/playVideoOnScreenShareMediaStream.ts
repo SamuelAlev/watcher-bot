@@ -24,7 +24,7 @@ export default async (page: Page, state: State, database: Database, videoLink: s
 
     try {
         // Reset attributes
-        state.screenShared && (await disconnectFromVoiceChannel(page));
+        state.screenShared && (await disconnectFromVoiceChannel(page, state));
         await setVideoLoop(page, false);
         await unbindVideoFromScreenShareMediaStream(page, state);
         await unbindAudioFromScreenShareMediaStream(page, state);

@@ -1,6 +1,7 @@
 import { Page } from 'puppeteer';
+import { State } from '..';
 
-export default async (page: Page) => {
+export default async (page: Page, state: State) => {
     const DEBUG = process.env.DEBUG === 'true';
 
     DEBUG && console.log('Disconnect from voice channel');
@@ -11,4 +12,7 @@ export default async (page: Page) => {
     }
 
     await disconnectButton.click();
+
+    state.connectedToVoiceChannel = false;
+    state.screenShared = false;
 };

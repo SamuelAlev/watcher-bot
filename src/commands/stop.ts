@@ -16,7 +16,7 @@ export default async (page: Page, state: State, database: Database) => {
         await updateItemStatusWhereQueued(database, PlayStatus.Played);
         await unbindVideoFromScreenShareMediaStream(page, state);
         await unbindAudioFromScreenShareMediaStream(page, state);
-        await disconnectFromVoiceChannel(page);
+        state.connectedToVoiceChannel && (await disconnectFromVoiceChannel(page, state));
 
         state.currentlyPlaying = undefined;
         state.screenShared = false;
