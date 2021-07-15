@@ -32,6 +32,7 @@ import volume from './commands/volume';
 import countItemInQueue from './database/countItemInQueue';
 import getFirstItemInQueue from './database/getFirstItemInQueue';
 import updateItemStatusById from './database/updateItemStatusById';
+import createDir from './functions/createDir';
 
 dotenv.config();
 
@@ -135,7 +136,6 @@ export interface QueueItem {
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
-            '--single-process',
             '--disable-gpu',
         ],
         headless: HEADLESS,
@@ -144,6 +144,8 @@ export interface QueueItem {
     const page = await browser.newPage();
 
     await page.setBypassCSP(true);
+
+    DEBUG && createDir(join(__dirname, '..', 'logs'));
 
     await page.goto(
         `${DISCORD_DOMAIN}${DISCORD_LOGIN_PATH}?redirect_to=%2Fchannels%2F${DISCORD_SERVER_ID}%2F${DISCORD_BOT_COMMAND_CHANNEL_ID}` as string,
