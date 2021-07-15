@@ -16,6 +16,5 @@ declare namespace NodeJS {
         DISCORD_BOT_COMMAND_CHANNEL_ID: string;
         DISCORD_VOICE_CHANNEL_ID: string;
         DISCORD_WEBHOOK_URL: string;
-        DISABLE_GPU: string;
     }
 }
