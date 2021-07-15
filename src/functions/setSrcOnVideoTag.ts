@@ -14,16 +14,14 @@ export default async (page: Page, videoPath: string) => {
                     return reject("Could't find the video tag");
                 }
 
-                if (window.Hls.isSupported()) {
+                if (videoPath.includes('.m3u8') && window.Hls.isSupported()) {
                     DEBUG && console.log('Hls support the format');
                     const hls = new window.Hls();
                     hls.loadSource(videoPath);
                     hls.attachMedia(video);
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                } else {
                     DEBUG && console.log('Hls does not support the format');
                     source.setAttribute('src', videoPath);
-                } else {
-                    reject('Video Source can not play');
                 }
 
                 (video as HTMLVideoElement).load();
