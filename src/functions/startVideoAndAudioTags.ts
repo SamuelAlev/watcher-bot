@@ -19,7 +19,7 @@ export default async (page: Page) => {
             DEBUG && window.logger('Starting the video');
         }
 
-        if (window.mixedStream.getAudioTracks().length) {
+        if (window.mixedStream.getAudioTracks().length && audio.src) {
             (audio as HTMLAudioElement).currentTime = video.currentTime;
             (audio as HTMLAudioElement).play();
             DEBUG && window.logger('Starting the audio');
