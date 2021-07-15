@@ -24,7 +24,6 @@ import pause from './commands/pause';
 import play from './commands/play';
 import queue from './commands/queue';
 import resume from './commands/resume';
-import seek from './commands/seek';
 import skip from './commands/skip';
 import speed from './commands/speed';
 import stop from './commands/stop';
@@ -82,7 +81,6 @@ const commands: CommandList = {
     q: queue,
     resume,
     r: resume,
-    seek,
     skip,
     s: skip,
     speed,
@@ -231,6 +229,10 @@ export interface QueueItem {
         });
 
         observer.observe(target, { childList: true, subtree: true, characterDataOldValue: true });
+    });
+
+    await page.addScriptTag({
+        url: 'https://cdn.jsdelivr.net/npm/hls.js@latest',
     });
 
     console.log('Ready to receive messages');
