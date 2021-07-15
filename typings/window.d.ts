@@ -4,6 +4,8 @@ declare global {
         onVideoEnded: () => void;
         logger: (...args: any) => void;
 
+        Hls: any;
+
         mixedStream: MediaStream;
     }
 
