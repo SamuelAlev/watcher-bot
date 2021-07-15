@@ -2,9 +2,13 @@ FROM node:16
 
 LABEL author="Samuel Alev <samuel.alev@protonmail.com>"
 
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 WORKDIR /app
 
 COPY ["package.json", "package-lock.json", "./"]
+
+RUN npm ci
 
 # Install Chrome
 RUN apt-get update \
@@ -17,9 +21,5 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY . .
-
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-
-RUN npm ci
 
 CMD ["npm", "start"]
