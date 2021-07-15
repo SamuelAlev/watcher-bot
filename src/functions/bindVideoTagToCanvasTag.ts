@@ -55,6 +55,8 @@ export default async (page: Page) => {
         };
 
         video.addEventListener('canplay', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
             requestAnimationFrame(() => updateCanvas(ctx, video, { scale }));
         });
