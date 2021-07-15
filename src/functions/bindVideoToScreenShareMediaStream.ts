@@ -17,7 +17,6 @@ export default async (page: Page, state: State, withVideoTagAudio = false) => {
                 throw new Error("Could't get canvas context");
             }
 
-            DEBUG && window.logger('video track on canvas tag:', canvas.captureStream(VIDEO_FPS).getVideoTracks());
             const videoTrack = canvas.captureStream(VIDEO_FPS).getVideoTracks()[0];
             if (videoTrack) {
                 window.mixedStream.addTrack(videoTrack);
