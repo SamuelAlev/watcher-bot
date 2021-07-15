@@ -13,8 +13,14 @@ export default async (page: Page) => {
         DEBUG && console.log('No second tooltip to hide');
     }
 
+    const thirdTooltip = await page.$('div[class*="animatorTop-"] button');
+    if (!thirdTooltip) {
+        DEBUG && console.log('No third tooltip to hide');
+    }
+
     DEBUG && console.log('Hiding tooltip');
 
     await firstTooltip?.click();
     await secondTooltip?.click();
+    await thirdTooltip?.click();
 };
