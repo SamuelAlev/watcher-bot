@@ -14,7 +14,12 @@ export default async (page: Page) => {
             audio.setAttribute('controls', '');
             audio.setAttribute('style', 'visibility: hidden;');
 
-            audio.onerror = () => reject('Error while adding the audio');
+            const source = document.createElement('source');
+
+            audio.appendChild(source);
+
+            audio.onerror = () => reject('Error while adding the audio tag.');
+            source.onerror = () => reject('Error while adding the source in audio tag.');
 
             (document as HTMLDocument).body.appendChild(audio);
 

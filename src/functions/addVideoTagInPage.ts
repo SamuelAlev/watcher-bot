@@ -13,12 +13,15 @@ export default async (page: Page) => {
             video.setAttribute('muted', '');
             video.setAttribute('crossorigin', 'anonymous');
             video.setAttribute('controls', '');
-            video.setAttribute('style', 'visibility: hidden;');
-            video.setAttribute('type', 'application/x-mpegURL');
 
-            video.onerror = () => reject('Error while adding the video');
+            const source = document.createElement('source');
 
-            (document as HTMLDocument).body.appendChild(video);
+            video.appendChild(source);
+
+            video.onerror = () => reject('Error while adding the video tag.');
+            source.onerror = () => reject('Error while adding the source in video tag.');
+
+            document.body.appendChild(video);
 
             return resolve();
         });
