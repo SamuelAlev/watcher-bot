@@ -17,7 +17,7 @@ export default async function (url: string): Promise<VideoSources> {
     try {
         const content = await youtubedl(url, {
             getUrl: true,
-            format: 'best',
+            format: '137+141/best',
         });
 
         //@ts-ignore
