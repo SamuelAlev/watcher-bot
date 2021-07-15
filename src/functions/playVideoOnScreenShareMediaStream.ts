@@ -8,6 +8,7 @@ import disconnectFromVoiceChannel from './disconnectFromVoiceChannel';
 import setSrcOnAudioTag from './setSrcOnAudioTag';
 import setSrcOnVideoTag from './setSrcOnVideoTag';
 import setVideoLoop from './setVideoAndAudioTagsLoop';
+import setVideoTypeOnVideoTag from './setVideoTypeOnVideoTag';
 import startScreenSharing from './startScreenSharing';
 import startVideo from './startVideoAndAudioTags';
 import unbindAudioFromScreenShareMediaStream from './unbindAudioFromScreenShareMediaStream';
@@ -28,13 +29,19 @@ export default async (page: Page, state: State, database: Database, videoLink: s
         await unbindVideoFromScreenShareMediaStream(page, state);
         await unbindAudioFromScreenShareMediaStream(page, state);
 
-        // Set video src
-        await setSrcOnVideoTag(page, videoLink);
-        await setSrcOnAudioTag(page, audioLink);
+        // Set type based on URL
+        await setVideoTypeOnVideoTag(page, videoLink);
 
         // Setup Stream
-        await bindVideoToScreenShareMediaStream(page, state);
-        await bindAudioToScreenShareMediaStream(page, state);
+        if (videoLink === audioLink) {
+            await setSrcOnVideoTag(page, videoLink);
+            await bindVideoToScreenShareMediaStream(page, state, true);
+        } else {
+            await setSrcOnVideoTag(page, videoLink);
+            await setSrcOnAudioTag(page, audioLink);
+            await bindVideoToScreenShareMediaStream(page, state);
+            await bindAudioToScreenShareMediaStream(page, state);
+        }
 
         // Connect to the voice channel and share the screen
         await connectToVoiceChannel(page, state);
