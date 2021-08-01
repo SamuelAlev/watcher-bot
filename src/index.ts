@@ -102,6 +102,7 @@ export interface QueueItem {
     originalVideoLink: string;
     videoLink: string;
     audioLink: string;
+    captionsLink: string | null;
     status: PlayStatus;
     createdAt: string;
 }
@@ -188,7 +189,14 @@ export interface QueueItem {
 
             await updateItemStatusById(database, PlayStatus.Playing, item.id);
             state.currentlyPlaying = item;
-            await playVideoOnScreenShareMediaStream(page, state, database, item.videoLink, item.audioLink);
+            await playVideoOnScreenShareMediaStream(
+                page,
+                state,
+                database,
+                item.videoLink,
+                item.audioLink,
+                item.captionsLink,
+            );
         } else {
             DEBUG && console.log('Video ended, leaving');
 

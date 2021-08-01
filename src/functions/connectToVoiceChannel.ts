@@ -6,12 +6,12 @@ export default async (page: Page, state: State) => {
 
     const DEBUG = process.env.DEBUG === 'true';
 
+    const voiceChannelElement = await page.$(`a[data-list-item-id="channels___${DISCORD_VOICE_CHANNEL_ID}"]`);
+
     if (DEBUG) {
         console.log('Connect from voice channel');
         await page.screenshot({ path: 'logs/3-show-server.jpg' });
     }
-
-    const voiceChannelElement = await page.$(`a[data-list-item-id="channels___${DISCORD_VOICE_CHANNEL_ID}"]`);
 
     if (!voiceChannelElement) {
         throw new Error("Haven't found the channel by ID");

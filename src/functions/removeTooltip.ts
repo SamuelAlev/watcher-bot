@@ -3,24 +3,31 @@ import { Page } from 'puppeteer';
 export default async (page: Page) => {
     const DEBUG = process.env.DEBUG === 'true';
 
-    const firstTooltip = await page.$('div[class*="channelNotice-"] > div[class*="close-"]');
-    if (!firstTooltip) {
-        DEBUG && console.log('No first tooltip to hide');
-    }
+    await page.evaluate((selector) => {
+        const elements = document.querySelectorAll(selector);
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].parentNode.removeChild(elements[i]);
+        }
+    }, 'div[class*="layerContainer-"]');
 
-    const secondTooltip = await page.$('#popout_9 button');
-    if (!secondTooltip) {
-        DEBUG && console.log('No second tooltip to hide');
-    }
+    await page.evaluate((selector) => {
+        const elements = document.querySelectorAll(selector);
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].parentNode.removeChild(elements[i]);
+        }
+    }, 'div[class*="channelNotice-"]');
 
-    const thirdTooltip = await page.$('div[class*="animatorTop-"] button');
-    if (!thirdTooltip) {
-        DEBUG && console.log('No third tooltip to hide');
-    }
+    await page.evaluate((selector) => {
+        const elements = document.querySelectorAll(selector);
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].parentNode.removeChild(elements[i]);
+        }
+    }, 'div[id*="popup"]');
 
-    DEBUG && console.log('Hiding tooltip');
-
-    await firstTooltip?.click();
-    await secondTooltip?.click();
-    await thirdTooltip?.click();
+    await page.evaluate((selector) => {
+        const elements = document.querySelectorAll(selector);
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].parentNode.removeChild(elements[i]);
+        }
+    }, 'div[class*="popup"]');
 };

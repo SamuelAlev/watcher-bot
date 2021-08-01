@@ -17,7 +17,14 @@ import unbindVideoFromScreenShareMediaStream from './unbindVideoFromScreenShareM
 import stop from '../commands/stop';
 import { Database } from 'sqlite3';
 
-export default async (page: Page, state: State, database: Database, videoLink: string, audioLink: string) => {
+export default async (
+    page: Page,
+    state: State,
+    database: Database,
+    videoLink: string,
+    audioLink: string,
+    captionsLink: string | null,
+) => {
     const DEBUG = process.env.DEBUG === 'true';
 
     DEBUG && console.log('Playing the video and audio');
@@ -32,12 +39,12 @@ export default async (page: Page, state: State, database: Database, videoLink: s
         // Set type based on URL
         await setVideoTypeOnVideoTag(page, videoLink);
 
+        await setSrcOnVideoTag(page, videoLink, captionsLink);
+
         // Setup Stream
         if (videoLink === audioLink) {
-            await setSrcOnVideoTag(page, videoLink);
             await bindVideoToScreenShareMediaStream(page, state, true);
         } else {
-            await setSrcOnVideoTag(page, videoLink);
             await setSrcOnAudioTag(page, audioLink);
             await bindVideoToScreenShareMediaStream(page, state);
             await bindAudioToScreenShareMediaStream(page, state);

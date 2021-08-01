@@ -1,16 +1,17 @@
 import { Page } from 'puppeteer';
 
-export default async (page: Page, videoPath: string) => {
+export default async (page: Page, videoPath: string, captionsPath: string | null) => {
     const DEBUG = process.env.DEBUG === 'true';
 
     DEBUG && console.log('Adding `src` attribute to video tag');
 
     await page.evaluate(
-        (DEBUG: boolean, videoPath: string) => {
+        (DEBUG: boolean, videoPath: string, captionsPath: string | null) => {
             return new Promise<void>((resolve, reject) => {
                 const video = document.getElementById('video-to-play') as HTMLVideoElement;
                 const source = video?.querySelector('source');
-                if (!video || !source) {
+                const track = video?.querySelector('track');
+                if (!video || !source || !track) {
                     return reject("Could't find the video tag");
                 }
 
@@ -28,6 +29,7 @@ export default async (page: Page, videoPath: string) => {
                     });
                 } else {
                     DEBUG && console.log('Hls does not support the format');
+                    captionsPath && track.setAttribute('src', captionsPath);
                     source.setAttribute('src', videoPath);
                     (video as HTMLVideoElement).load();
                 }
@@ -42,6 +44,11 @@ export default async (page: Page, videoPath: string) => {
                     resolve();
                 });
 
+                (track as HTMLTrackElement).addEventListener('loadeddata', () => {
+                    DEBUG && console.log('Video Track can play');
+                    resolve();
+                });
+
                 (video as HTMLVideoElement).addEventListener('error', () => {
                     reject('Video can not play');
                 });
@@ -49,9 +56,14 @@ export default async (page: Page, videoPath: string) => {
                 (source as HTMLSourceElement).addEventListener('error', () => {
                     reject('Video Source can not play');
                 });
+
+                (track as HTMLTrackElement).addEventListener('error', () => {
+                    reject('Video Track can not play');
+                });
             });
         },
         DEBUG,
         videoPath,
+        captionsPath,
     );
 };

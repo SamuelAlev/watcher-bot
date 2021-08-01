@@ -31,6 +31,13 @@ export default async (page: Page, state: State, database: Database, parameters: 
     }
 
     const originalLink = parameters[0].replace(/^"|"$/g, '');
+    const captionsLinkParam = parameters.find((param) => param.startsWith('--captions='));
+    let captionsLink = null;
+    if (captionsLinkParam) {
+        captionsLink = captionsLinkParam.replace('--captions=', '');
+    }
+
+    console.log(captionsLink);
 
     let videoLink = originalLink;
     let audioLink = videoLink;
@@ -61,8 +68,9 @@ export default async (page: Page, state: State, database: Database, parameters: 
         const item = {
             id: 0,
             originalVideoLink: originalLink,
-            videoLink: videoLink,
-            audioLink: audioLink,
+            videoLink,
+            audioLink,
+            captionsLink,
             status: PlayStatus.Queued,
             createdAt: new Date().toISOString(),
         };
@@ -85,6 +93,13 @@ export default async (page: Page, state: State, database: Database, parameters: 
         const item = await getFirstItemInQueue(database);
         state.currentlyPlaying = item;
         await updateItemStatusById(database, PlayStatus.Playing, item.id);
-        await playVideoOnScreenShareMediaStream(page, state, database, item.videoLink, item.audioLink);
+        await playVideoOnScreenShareMediaStream(
+            page,
+            state,
+            database,
+            item.videoLink,
+            item.audioLink,
+            item.captionsLink,
+        );
     }
 };
