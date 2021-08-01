@@ -4,3 +4,4 @@ services:
     watcher_bot:
         build: .
         env_file: .env
+        mem_limit: 512m
