@@ -37,8 +37,6 @@ export default async (page: Page, state: State, database: Database, parameters: 
         captionsLink = captionsLinkParam.replace('--captions=', '');
     }
 
-    console.log(captionsLink);
-
     let videoLink = originalLink;
     let audioLink = videoLink;
 
