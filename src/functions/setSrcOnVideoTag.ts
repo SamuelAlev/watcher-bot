@@ -1,12 +1,12 @@
 import { Page } from 'puppeteer';
 
-export default async (page: Page, videoPath: string, captionsPath: string | null) => {
+export default async (page: Page, videoPath: string, subtitlePath: string | null) => {
     const DEBUG = process.env.DEBUG === 'true';
 
     DEBUG && console.log('Adding `src` attribute to video tag');
 
     await page.evaluate(
-        (DEBUG: boolean, videoPath: string, captionsPath: string | null) => {
+        (DEBUG: boolean, videoPath: string, subtitlePath: string | null) => {
             return new Promise<void>((resolve, reject) => {
                 const video = document.getElementById('video-to-play') as HTMLVideoElement;
                 const source = video?.querySelector('source');
@@ -29,7 +29,7 @@ export default async (page: Page, videoPath: string, captionsPath: string | null
                     });
                 } else {
                     DEBUG && console.log('Hls does not support the format');
-                    captionsPath && track.setAttribute('src', captionsPath);
+                    subtitlePath && track.setAttribute('src', subtitlePath);
                     source.setAttribute('src', videoPath);
                     (video as HTMLVideoElement).load();
                 }
@@ -64,6 +64,6 @@ export default async (page: Page, videoPath: string, captionsPath: string | null
         },
         DEBUG,
         videoPath,
-        captionsPath,
+        subtitlePath,
     );
 };

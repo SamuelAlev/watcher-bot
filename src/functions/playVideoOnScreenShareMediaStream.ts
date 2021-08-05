@@ -24,7 +24,7 @@ export default async (
     database: Database,
     videoLink: string,
     audioLink: string,
-    captionsLink: string | null,
+    subtitleLink: string | null,
 ) => {
     const DEBUG = process.env.DEBUG === 'true';
 
@@ -40,7 +40,7 @@ export default async (
         // Set type based on URL
         await setVideoTypeOnVideoTag(page, videoLink);
 
-        await setSrcOnVideoTag(page, videoLink, captionsLink);
+        await setSrcOnVideoTag(page, videoLink, subtitleLink);
 
         // Setup Stream
         if (videoLink === audioLink) {
@@ -70,7 +70,7 @@ export default async (
             description: "Couldn't load the file.",
             color: MessageEmbedColor.Error,
         });
-        
+
         console.error("Couldn't connect and stream", error);
     }
 };

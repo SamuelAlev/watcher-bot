@@ -1,1 +1,1 @@
-CREATE TABLE IF NOT EXISTS queue(id INTEGER PRIMARY KEY, originalVideoLink TEXT NOT NULL, videoLink TEXT NOT NULL, audioLink TEXT NOT NULL, captionsLink TEXT, status INTEGER NOT NULL, createdAt TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS queue(id INTEGER PRIMARY KEY, originalVideoLink TEXT NOT NULL, videoLink TEXT NOT NULL, audioLink TEXT NOT NULL, subtitleLink TEXT, status INTEGER NOT NULL, createdAt TEXT NOT NULL);

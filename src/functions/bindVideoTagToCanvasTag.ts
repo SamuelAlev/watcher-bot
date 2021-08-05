@@ -21,7 +21,7 @@ export default async (page: Page) => {
             throw new Error("Could't get canvas context");
         }
 
-        let captionText: string | null = null;
+        let subtitleText: string | null = null;
 
         const drawStroked = (text: string, x: number, y: number) => {
             ctx.strokeStyle = 'black';
@@ -61,22 +61,22 @@ export default async (page: Page) => {
             const left = canvas.width / 2 - (vidW / 2) * options.scale;
             ctx.drawImage(video, left, top, vidW * options.scale, vidH * options.scale);
 
-            if (captionText) {
+            if (subtitleText) {
                 ctx.font = '48px Sans-serif';
 
-                const captionTexts = captionText
+                const subtitleTexts = subtitleText
                     .replaceAll('<b>', '')
                     .replaceAll('</b>', '')
                     .replaceAll('<i>', '')
                     .replaceAll('</i>', '')
                     .split('\n');
 
-                captionTexts.forEach((text, index) => {
+                subtitleTexts.forEach((text, index) => {
                     const textWidth = ctx.measureText(text).width;
                     drawStroked(
                         text,
                         (video.videoWidth / 2 - textWidth / 2) * options.scale,
-                        vidH * options.scale - 80 - (captionTexts.length - index - 1) * 55,
+                        vidH * options.scale - 80 - (subtitleTexts.length - index - 1) * 55,
                     );
                 });
             }
@@ -97,7 +97,7 @@ export default async (page: Page) => {
         });
 
         video.textTracks[0].addEventListener('cuechange', (event: Event) => {
-            captionText = (((event.target as TextTrack).activeCues as TextTrackCueList)[0] as VTTCue).text;
+            subtitleText = (((event.target as TextTrack).activeCues as TextTrackCueList)[0] as VTTCue).text;
         });
     });
 };

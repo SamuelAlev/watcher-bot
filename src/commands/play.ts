@@ -31,10 +31,10 @@ export default async (page: Page, state: State, database: Database, parameters: 
     }
 
     const originalLink = parameters[0].replace(/^"|"$/g, '');
-    const captionsLinkParam = parameters.find((param) => param.startsWith('--captions='));
-    let captionsLink = null;
-    if (captionsLinkParam) {
-        captionsLink = captionsLinkParam.replace('--captions=', '');
+    const subtitleLinkParam = parameters.find((param) => param.startsWith('--subtitle='));
+    let subtitleLink = null;
+    if (subtitleLinkParam) {
+        subtitleLink = subtitleLinkParam.replace('--subtitle=', '');
     }
 
     let videoLink = originalLink;
@@ -68,7 +68,7 @@ export default async (page: Page, state: State, database: Database, parameters: 
             originalVideoLink: originalLink,
             videoLink,
             audioLink,
-            captionsLink,
+            subtitleLink,
             status: PlayStatus.Queued,
             createdAt: new Date().toISOString(),
         };
@@ -97,7 +97,7 @@ export default async (page: Page, state: State, database: Database, parameters: 
             database,
             item.videoLink,
             item.audioLink,
-            item.captionsLink,
+            item.subtitleLink,
         );
     }
 };
