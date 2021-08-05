@@ -16,6 +16,7 @@ import unbindVideoFromScreenShareMediaStream from './unbindVideoFromScreenShareM
 
 import stop from '../commands/stop';
 import { Database } from 'sqlite3';
+import sendMessage, { MessageEmbedColor } from './sendMessage';
 
 export default async (
     page: Page,
@@ -59,8 +60,17 @@ export default async (
 
         // Play the video
         await startVideo(page);
-    } catch (e) {
-        await stop(page, state, database);
-        console.error("Couldn't connect and stream", e);
+    } catch (error) {
+        if (state.connectedToVoiceChannel) {
+            await stop(page, state, database);
+        }
+
+        await sendMessage({
+            title: 'Error',
+            description: "Couldn't load the file.",
+            color: MessageEmbedColor.Error,
+        });
+        
+        console.error("Couldn't connect and stream", error);
     }
 };
