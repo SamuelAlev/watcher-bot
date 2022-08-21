@@ -1,17 +1,16 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import type { LaunchOptions } from 'puppeteer';
-import { copyFileSync, writeFileSync } from 'fs';
 import { parse, stringify } from 'envfile';
-import { readFileSync } from 'node:fs';
-import getChromeBinaryLocation from './helpers/getChromeBinaryLocation';
+import { readFileSync, copyFileSync, writeFileSync } from 'node:fs';
+import { getChromeBinaryLocation } from './helpers/getChromeBinaryLocation';
 //@ts-ignore
 import dialog from 'dialog';
 
 (async () => {
     // Copy .env.template to .env
     copyFileSync(join(__dirname, '..', '..', '.env.template'), join(__dirname, '..', '..', '.env'));
+    console.log('Created .env file');
 
     // Load keys
     const envFileContent = readFileSync(join(__dirname, '..', '..', '.env'), {
@@ -20,17 +19,26 @@ import dialog from 'dialog';
     const envKeys = parse(envFileContent) as Record<string, string>;
 
     // Set Chrome path
-    const chromePath = await getChromeBinaryLocation();
-    console.log('Found Chrome path:', chromePath);
-
-    envKeys['CHROME_BIN'] = chromePath || 'Chrome not found';
+    let chromePath;
+    try {
+        if (!envKeys['CHROME_BIN']) {
+            chromePath = await getChromeBinaryLocation();
+            console.log('Found Chrome path:', chromePath);
+            envKeys['CHROME_BIN'] = chromePath || 'Chrome not found';
+            // Write to .env files
+            writeFileSync(join(__dirname, '..', '..', '.env'), stringify(envKeys));
+        }
+    } catch {
+        console.error('Chrome not found');
+        return;
+    }
 
     // Register a new account on Discord
     const browser = await puppeteer.use(StealthPlugin()).launch({
         executablePath: envKeys['CHROME_BIN'],
         args: ['--disable-notifications'],
         headless: false,
-    } as LaunchOptions);
+    });
 
     const page = await browser.newPage();
 
@@ -44,17 +52,17 @@ import dialog from 'dialog';
     const usernameInput = await page.$('[name="username"]');
     await usernameInput?.type(envKeys['BOT_NAME']);
 
-    const birthdayMonthSelect = await page.$('[class*="inputMonth-"]');
+    const birthdayMonthSelect = await page.$('[class*="month-"]');
     await birthdayMonthSelect?.click();
     const monthJanuaryOption = await page.$('#react-select-2-option-0');
     await monthJanuaryOption?.click();
 
-    const birthdayDaySelect = await page.$('[class*="inputDay-"]');
+    const birthdayDaySelect = await page.$('[class*="day-"]');
     await birthdayDaySelect?.click();
     const dayFirstOption = await page.$('#react-select-3-option-0');
     await dayFirstOption?.click();
 
-    const birthdayYearSelect = await page.$('[class*="inputYear-"]');
+    const birthdayYearSelect = await page.$('[class*="year-"]');
     await birthdayYearSelect?.click();
     const yearMajoroption = await page.$('#react-select-4-option-18');
     await yearMajoroption?.click();
@@ -90,8 +98,6 @@ import dialog from 'dialog';
     // Accept the invitation
     await page.waitForNavigation({ timeout: 0, waitUntil: 'networkidle2' });
 
-    await page.waitForSelector('button');
-
     const acceptInvitation = await page.$('[class*="authBox-"] button');
     await acceptInvitation?.click();
 
@@ -104,6 +110,7 @@ import dialog from 'dialog';
     await page.addStyleTag({ path: join(__dirname, 'inject', 'tooltip.css') });
     await page.addStyleTag({ path: join(__dirname, 'inject', 'modal.css') });
     await page.addScriptTag({ path: join(__dirname, 'inject', 'modal.js') });
+    console.log('Modal helpers are injected');
 
     // Set Server ID
     const pageUrlArray = page.url().split('/');

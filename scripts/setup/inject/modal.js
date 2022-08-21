@@ -10,30 +10,30 @@ document.body.appendChild(modal);
 window.openModal = (title, image, content, onClick) => {
     modal.classList.remove('hide');
 
-    const h1 = document.createElement('h1');
-    h1.classList.add('title');
-    h1.innerText = title;
+    const titleElement = document.createElement('h1');
+    titleElement.classList.add('title');
+    titleElement.innerText = title;
 
-    let img;
+    let imageElement;
     if (image) {
-        img = document.createElement('img');
-        img.classList.add('image');
-        img.src = image;
+        imageElement = document.createElement('img');
+        imageElement.classList.add('image');
+        imageElement.src = image;
     }
 
-    const p = document.createElement('p');
-    p.classList.add('content');
-    p.innerHTML = content;
+    const contentElement = document.createElement('p');
+    contentElement.classList.add('content');
+    contentElement.innerHTML = content;
 
-    const button = document.createElement('button');
-    button.classList.add('button');
-    button.innerText = 'Continue';
-    button.onclick = onClick;
+    const buttonElement = document.createElement('button');
+    buttonElement.classList.add('button');
+    buttonElement.innerText = 'Continue';
+    buttonElement.onclick = onClick;
 
-    container.appendChild(h1);
-    image && container.appendChild(img);
-    container.appendChild(p);
-    container.appendChild(button);
+    container.appendChild(titleElement);
+    image && container.appendChild(imageElement);
+    container.appendChild(contentElement);
+    container.appendChild(buttonElement);
 };
 
 window.closeModal = () => {

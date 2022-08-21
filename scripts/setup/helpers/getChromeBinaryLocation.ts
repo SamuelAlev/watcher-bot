@@ -1,22 +1,20 @@
-import { stat } from 'fs';
-import { exec, ExecException } from 'child_process';
+import { stat } from 'node:fs';
+import { exec, ExecException } from 'node:child_process';
 
-export default function () {
-    return new Promise<string | null>(async (resolve) => {
-        let path: string | null = null;
+export const getChromeBinaryLocation = async () => {
+    let path: string | null = null;
 
-        if (process.platform === 'darwin') {
-            //TODO: get chrome path from macOS
-            //path = await getOSXPath(finisher);
-        } else if (process.platform === 'win32') {
-            path = await getWinPath();
-        } else {
-            path = await getLinuxPath();
-        }
+    if (process.platform === 'darwin') {
+        //TODO: get chrome path from macOS
+        //path = await getOSXPath(finisher);
+    } else if (process.platform === 'win32') {
+        path = await getWinPath();
+    } else {
+        path = await getLinuxPath();
+    }
 
-        resolve(path);
-    });
-}
+    return path;
+};
 
 const getWinPath = async () => {
     const winSuffix = '\\Google\\Chrome\\Application\\chrome.exe';
